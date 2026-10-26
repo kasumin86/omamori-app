@@ -8,7 +8,6 @@
         :root {
             --primary: #8CA695;
             --primary-dark: #6D8577;
-            --accent: #E8D5C4;
             --bg: #F7F9F6;
             --card-bg: #FFFFFF;
             --text: #3A443B;
@@ -21,7 +20,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         body {
@@ -37,11 +36,11 @@
 
         header {
             text-align: center;
-            padding: 20px 0 10px 0;
+            padding: 16px 0 8px 0;
         }
 
         header h1 {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             color: var(--primary-dark);
             margin-bottom: 4px;
             font-weight: 600;
@@ -52,13 +51,12 @@
             color: var(--text-light);
         }
 
-        /* タブナビゲーション */
         .tab-nav {
             display: flex;
             background: #EAEFEA;
             border-radius: 30px;
             padding: 4px;
-            margin: 16px 0 24px 0;
+            margin: 12px 0 20px 0;
         }
 
         .tab-btn {
@@ -83,7 +81,6 @@
 
         .tab-content {
             display: none;
-            flex: 1;
             animation: fadeIn 0.3s ease;
         }
 
@@ -96,16 +93,14 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* カード共通スタイル */
         .card {
             background: var(--card-bg);
             border-radius: var(--radius);
-            padding: 24px 20px;
+            padding: 20px 16px;
             box-shadow: var(--shadow);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
-        /* ガチャセクション */
         .gacha-section {
             text-align: center;
         }
@@ -113,17 +108,17 @@
         .gacha-card {
             background: linear-gradient(135deg, #F0F5F1 0%, #E2EDE4 100%);
             border-radius: 12px;
-            padding: 32px 20px;
-            min-height: 160px;
+            padding: 24px 16px;
+            min-height: 140px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             border: 1px dashed var(--primary);
         }
 
         .gacha-text {
-            font-size: 1rem;
+            font-size: 0.95rem;
             line-height: 1.7;
             color: var(--text);
             font-weight: 500;
@@ -140,11 +135,6 @@
             font-weight: 600;
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(140, 166, 149, 0.3);
-            transition: background 0.2s;
-        }
-
-        .btn:active {
-            transform: scale(0.98);
         }
 
         .btn:disabled {
@@ -159,41 +149,35 @@
             margin-top: 10px;
         }
 
-        /* ワークセクション */
         .work-title {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
             color: var(--primary-dark);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .work-desc {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-light);
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
         textarea {
             width: 100%;
-            height: 90px;
-            padding: 12px;
+            height: 80px;
+            padding: 10px;
             border: 1px solid #D5DDD6;
             border-radius: 10px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             resize: none;
             background: #FAFAFA;
             outline: none;
             margin-bottom: 16px;
         }
 
-        textarea:focus {
-            border-color: var(--primary);
-            background: #FFF;
-        }
-
         .step-box {
-            margin-bottom: 20px;
-            padding-bottom: 16px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
             border-bottom: 1px solid #EFEFEF;
         }
 
@@ -203,24 +187,22 @@
             padding-bottom: 0;
         }
 
-        /* カンペセクション */
         .kanpe-tabs {
             display: flex;
             gap: 6px;
             margin-bottom: 16px;
-            overflow-x: auto;
-            padding-bottom: 4px;
         }
 
         .kanpe-tab {
+            flex: 1;
             background: #EAEFEA;
             border: none;
-            padding: 6px 12px;
+            padding: 8px 4px;
             border-radius: 16px;
             font-size: 0.75rem;
             color: var(--text-light);
             cursor: pointer;
-            white-space: nowrap;
+            text-align: center;
         }
 
         .kanpe-tab.active {
@@ -232,9 +214,9 @@
         .kanpe-card {
             background: #FAFCFA;
             border-left: 4px solid var(--primary);
-            padding: 14px;
+            padding: 12px;
             border-radius: 0 10px 10px 0;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             font-size: 0.85rem;
             line-height: 1.6;
         }
@@ -246,22 +228,11 @@
             font-size: 0.8rem;
         }
 
-        /* くしゃくしゃアニメーション用 */
-        @keyframes crinkle {
-            0% { transform: scale(1) rotate(0deg); opacity: 1; }
-            50% { transform: scale(0.5) rotate(15deg) skew(10deg); opacity: 0.5; }
-            100% { transform: scale(0) rotate(45deg); opacity: 0; }
-        }
-
-        .crinkling {
-            animation: crinkle 0.6s forwards ease-in-out;
-        }
-
         footer {
             text-align: center;
             font-size: 0.7rem;
             color: var(--text-light);
-            padding: 20px 0 10px 0;
+            padding: 16px 0 8px 0;
             margin-top: auto;
         }
     </style>
@@ -273,9 +244,57 @@
         <p>今日もよく耐えたあなたへ。肩の力を抜く場所。</p>
     </header>
 
-    <!-- タブメニュー -->
     <div class="tab-nav">
         <button class="tab-btn active" onclick="switchTab('gacha')">今日のお守り</button>
         <button class="tab-btn" onclick="switchTab('work')">モヤモヤ仕分け</button>
         <button class="tab-btn" onclick="switchTab('kanpe')">行動カンペ</button>
     </div>
+
+    <!-- TAB 1: ガチャ -->
+    <div id="tab-gacha" class="tab-content active">
+        <div class="card gacha-section">
+            <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 12px;">1日1回引ける、あなたへのメッセージ</p>
+            <div class="gacha-card">
+                <div id="gachaResult" class="gacha-text">ボタンを押して、今日のお守り言葉を受け取ってね🌿</div>
+            </div>
+            <button id="gachaBtn" class="btn" onclick="drawGacha()">✨ 今日のお守りを受け取る</button>
+            <div id="gachaLimitMsg" class="gacha-limit-msg"></div>
+        </div>
+    </div>
+
+    <!-- TAB 2: ワーク -->
+    <div id="tab-work" class="tab-content">
+        <div class="card" id="workCard">
+            <div class="step-box">
+                <div class="work-title">STEP 1｜モヤモヤを吐き出す</div>
+                <div class="work-desc">今頭の中にある嫌なこと・不安をそのまま書いてね。</div>
+                <textarea id="workStep1" placeholder="例：目も合わせてくれなかった。私何かしたかな…"></textarea>
+            </div>
+
+            <div class="step-box">
+                <div class="work-title">STEP 2｜事実と妄想を切り分ける</div>
+                <div class="work-desc">「事実」と「深読み・妄想」を分けてみよう。</div>
+                <textarea id="workStep2" placeholder="【事実】目が合わなかっただけ。&#10;【妄想】嫌われている、私のせいだ。"></textarea>
+            </div>
+
+            <div class="step-box">
+                <div class="work-title">STEP 3｜自分ルール（避難訓練）</div>
+                <div class="work-desc">「こうなったらこうする」の対策を決めておこう。</div>
+                <textarea id="workStep3" placeholder="【ルール】挨拶だけして、我が子に意識を集中！"></textarea>
+            </div>
+
+            <button class="btn" onclick="detoxWork()" style="background: #D98282;">💥 モヤモヤを消去する</button>
+        </div>
+    </div>
+
+    <!-- TAB 3: カンペ -->
+    <div id="tab-kanpe" class="tab-content">
+        <div class="card">
+            <div class="kanpe-tabs">
+                <button class="kanpe-tab active" onclick="switchKanpe('omukae', this)">お迎え・すれ違い</button>
+                <button class="kanpe-tab" onclick="switchKanpe('gyoji', this)">参観日・行事</button>
+                <button class="kanpe-tab" onclick="switchKanpe('line', this)">LINE・連絡</button>
+            </div>
+
+            <div id="kanpe-omukae" class="kanpe-panel">
+                <div class="kan
