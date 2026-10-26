@@ -3,298 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>こころおまもり＆デトックス</title>
+    <title>心のおまもり＆デトックス</title>
     <style>
-        :root {
-            --primary: #8CA695;
-            --primary-dark: #6D8577;
-            --bg: #F7F9F6;
-            --card-bg: #FFFFFF;
-            --text: #3A443B;
-            --text-light: #7A8A7C;
-            --shadow: 0 4px 20px rgba(140, 166, 149, 0.12);
-            --radius: 16px;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-
         body {
-            background-color: var(--bg);
-            color: var(--text);
-            padding: 16px;
+            font-family: sans-serif;
+            background: #F7F9F6;
+            color: #3A443B;
+            padding: 20px 16px;
             max-width: 480px;
             margin: 0 auto;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
-
-        header {
+        h1 {
+            font-size: 1.3rem;
             text-align: center;
-            padding: 16px 0 8px 0;
-        }
-
-        header h1 {
-            font-size: 1.2rem;
-            color: var(--primary-dark);
+            color: #6D8577;
             margin-bottom: 4px;
-            font-weight: 600;
         }
-
-        header p {
-            font-size: 0.8rem;
-            color: var(--text-light);
-        }
-
-        .tab-nav {
-            display: flex;
-            background: #EAEFEA;
-            border-radius: 30px;
-            padding: 4px;
-            margin: 12px 0 20px 0;
-        }
-
-        .tab-btn {
-            flex: 1;
-            border: none;
-            background: transparent;
-            padding: 10px 0;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: var(--text-light);
-            border-radius: 24px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .tab-btn.active {
-            background: var(--card-bg);
-            color: var(--primary-dark);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            font-weight: 600;
-        }
-
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 20px 16px;
-            box-shadow: var(--shadow);
-            margin-bottom: 16px;
-        }
-
-        .gacha-section {
+        p.sub {
             text-align: center;
-        }
-
-        .gacha-card {
-            background: linear-gradient(135deg, #F0F5F1 0%, #E2EDE4 100%);
-            border-radius: 12px;
-            padding: 24px 16px;
-            min-height: 140px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-            border: 1px dashed var(--primary);
-        }
-
-        .gacha-text {
-            font-size: 0.95rem;
-            line-height: 1.7;
-            color: var(--text);
-            font-weight: 500;
-        }
-
-        .btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 14px;
-            border-radius: 30px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(140, 166, 149, 0.3);
-        }
-
-        .btn:disabled {
-            background: #ccc;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-
-        .gacha-limit-msg {
             font-size: 0.8rem;
-            color: var(--text-light);
-            margin-top: 10px;
+            color: #7A8A7C;
+            margin-bottom: 20px;
         }
-
-        .work-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--primary-dark);
-            margin-bottom: 6px;
-        }
-
-        .work-desc {
-            font-size: 0.75rem;
-            color: var(--text-light);
-            margin-bottom: 8px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 80px;
-            padding: 10px;
-            border: 1px solid #D5DDD6;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            resize: none;
-            background: #FAFAFA;
-            outline: none;
-            margin-bottom: 16px;
-        }
-
-        .step-box {
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #EFEFEF;
-        }
-
-        .step-box:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        .kanpe-tabs {
+        .nav {
             display: flex;
             gap: 6px;
+            margin-bottom: 20px;
+        }
+        .nav-btn {
+            flex: 1;
+            padding: 12px 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            border: none;
+            background: #EAEFEA;
+            color: #7A8A7C;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .nav-btn.active {
+            background: #8CA695;
+            color: white;
+        }
+        .panel {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .panel.active {
+            display: block;
+        }
+        .action-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            background: #8CA695;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+        .gacha-box {
+            background: #F0F5F1;
+            padding: 24px 16px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 500;
+            line-height: 1.6;
+            border: 1px dashed #8CA695;
             margin-bottom: 16px;
         }
-
-        .kanpe-tab {
-            flex: 1;
-            background: #EAEFEA;
-            border: none;
-            padding: 8px 4px;
-            border-radius: 16px;
-            font-size: 0.75rem;
-            color: var(--text-light);
-            cursor: pointer;
-            text-align: center;
+        textarea {
+            width: 100%;
+            height: 70px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+            margin-bottom: 14px;
         }
-
-        .kanpe-tab.active {
-            background: var(--primary);
-            color: white;
-            font-weight: 600;
-        }
-
-        .kanpe-card {
+        .kanpe-box {
             background: #FAFCFA;
-            border-left: 4px solid var(--primary);
+            border-left: 4px solid #8CA695;
             padding: 12px;
-            border-radius: 0 10px 10px 0;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             font-size: 0.85rem;
             line-height: 1.6;
         }
-
-        .kanpe-card strong {
+        .kanpe-box strong {
             display: block;
-            color: var(--primary-dark);
+            color: #6D8577;
             margin-bottom: 4px;
-            font-size: 0.8rem;
-        }
-
-        footer {
-            text-align: center;
-            font-size: 0.7rem;
-            color: var(--text-light);
-            padding: 16px 0 8px 0;
-            margin-top: auto;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>心のおまもり＆デトックス</h1>
-        <p>今日もよく耐えたあなたへ。肩の力を抜く場所。</p>
-    </header>
+    <h1>心のおまもり＆デトックス</h1>
+    <p class="sub">今日もよく耐えたあなたへ</p>
 
-    <div class="tab-nav">
-        <button class="tab-btn active" onclick="switchTab('gacha')">今日のお守り</button>
-        <button class="tab-btn" onclick="switchTab('work')">モヤモヤ仕分け</button>
-        <button class="tab-btn" onclick="switchTab('kanpe')">行動カンペ</button>
+    <!-- タブ切り替えボタン -->
+    <div class="nav">
+        <button class="nav-btn active" onclick="goTab('t1', this)">今日のお守り</button>
+        <button class="nav-btn" onclick="goTab('t2', this)">モヤモヤ仕分け</button>
+        <button class="nav-btn" onclick="goTab('t3', this)">行動カンペ</button>
     </div>
 
-    <!-- TAB 1: ガチャ -->
-    <div id="tab-gacha" class="tab-content active">
-        <div class="card gacha-section">
-            <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 12px;">1日1回引ける、あなたへのメッセージ</p>
-            <div class="gacha-card">
-                <div id="gachaResult" class="gacha-text">ボタンを押して、今日のお守り言葉を受け取ってね🌿</div>
-            </div>
-            <button id="gachaBtn" class="btn" onclick="drawGacha()">✨ 今日のお守りを受け取る</button>
-            <div id="gachaLimitMsg" class="gacha-limit-msg"></div>
+    <!-- TAB 1 -->
+    <div id="t1" class="panel active">
+        <div class="gacha-box" id="gachaView">ボタンを押して、今日のお守り言葉を受け取ってね🌿</div>
+        <button class="action-btn" id="gachaButton" onclick="doGacha()">✨ 今日のお守りを受け取る</button>
+        <p id="msgView" style="font-size: 0.8rem; text-align: center; color: #7A8A7C; margin-top: 10px;"></p>
+    </div>
+
+    <!-- TAB 2 -->
+    <div id="t2" class="panel">
+        <p style="font-size: 0.85rem; font-weight: bold; margin-bottom: 4px;">1. モヤモヤを吐き出す</p>
+        <textarea id="s1" placeholder="今ある不安や嫌なことをそのまま書く"></textarea>
+
+        <p style="font-size: 0.85rem; font-weight: bold; margin-bottom: 4px;">2. 事実と妄想を仕分ける</p>
+        <textarea id="s2" placeholder="【事実】目が合わなかった&#10;【妄想】嫌われているかも"></textarea>
+
+        <p style="font-size: 0.85rem; font-weight: bold; margin-bottom: 4px;">3. 自分ルール（避難訓練）</p>
+        <textarea id="s3" placeholder="【ルール】挨拶してすぐ我が子に集中！"></textarea>
+
+        <button class="action-btn" onclick="doClean()" style="background: #D98282;">💥 モヤモヤを消去する</button>
+    </div>
+
+    <!-- TAB 3 -->
+    <div id="t3" class="panel">
+        <div class="kanpe-box">
+            <strong>📍 お迎え・すれ違い</strong>
+            子どもと目を見て「今日のおやつ何にする〜？」と100%集中。周囲は背景！
+        </div>
+        <div class="kanpe-box">
+            <strong>📍 1人で歩くとき</strong>
+            視線は進行方向まっすぐ。堂々と胸を張って歩く（コソコソしない）。
+        </div>
+        <div class="kanpe-box">
+            <strong>📍 参観日・行事</strong>
+            スマホでメモするフリ、または壁の掲示物をじっくり読む。
+        </div>
+        <div class="kanpe-box">
+            <strong>📍 LINE・連絡</strong>
+            「確認しました！ありがとうございます😊」で即終了。
         </div>
     </div>
 
-    <!-- TAB 2: ワーク -->
-    <div id="tab-work" class="tab-content">
-        <div class="card" id="workCard">
-            <div class="step-box">
-                <div class="work-title">STEP 1｜モヤモヤを吐き出す</div>
-                <div class="work-desc">今頭の中にある嫌なこと・不安をそのまま書いてね。</div>
-                <textarea id="workStep1" placeholder="例：目も合わせてくれなかった。私何かしたかな…"></textarea>
-            </div>
+    <script>
+        const list = [
+            "相手の機嫌は相手の持ち物。あなたが背負う必要はありません。",
+            "挨拶をした。それだけであなたの勝ち！返事は相手の問題です。",
+            "去る者は追わず。離れていく人は、あなたの人生に必要ない人です。",
+            "誰にでも好かれる必要はありません。自分が自分を好きなら満点！",
+            "今日は自分を甘やかす日。美味しいものを食べてぐっすり寝よう。",
+            "人生の主役はあなた。脇役に心をかき乱させないで！",
+            "今日無事に過ごせただけで大成功。よく頑張ったね！"
+        ];
 
-            <div class="step-box">
-                <div class="work-title">STEP 2｜事実と妄想を切り分ける</div>
-                <div class="work-desc">「事実」と「深読み・妄想」を分けてみよう。</div>
-                <textarea id="workStep2" placeholder="【事実】目が合わなかっただけ。&#10;【妄想】嫌われている、私のせいだ。"></textarea>
-            </div>
+        function goTab(id, btn) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+        }
 
-            <div class="step-box">
-                <div class="work-title">STEP 3｜自分ルール（避難訓練）</div>
-                <div class="work-desc">「こうなったらこうする」の対策を決めておこう。</div>
-                <textarea id="workStep3" placeholder="【ルール】挨拶だけして、我が子に意識を集中！"></textarea>
-            </div>
+        function doGacha() {
+            const today = new Date().toDateString();
+            if (localStorage.getItem('gDay') === today) {
+                return;
+            }
+            const text = list[Math.floor(Math.random() * list.length)];
+            document.getElementById('gachaView').textContent = text;
+            localStorage.setItem('gDay', today);
+            localStorage.setItem('gText', text);
+            document.getElementById('gachaButton').disabled = true;
+            document.getElementById('gachaButton.style.background'] = '#ccc';
+            document.getElementById('msgView').textContent = "今日のガチャは終了しました🌿 また明日ね。";
+        }
 
-            <button class="btn" onclick="detoxWork()" style="background: #D98282;">💥 モヤモヤを消去する</button>
-        </div>
-    </div>
+        window.onload = function() {
+            const today = new Date().toDateString();
+            if (localStorage.getItem('gDay') === today) {
+                document.getElementById('gachaView').textContent = localStorage.getItem('gText');
+                document.getElementById('gachaButton').disabled = true;
+                document.getElementById('msgView').textContent = "今日のガチャはすでに引いています🌿 また明日ね。";
+            }
+        };
 
-    <!-- TAB 3: カンペ -->
-    <div id="tab-kanpe" class="tab-content">
-        <div class="card">
-            <div class="kanpe-tabs">
-                <button class="kanpe-tab active" onclick="switchKanpe('omukae', this)">お迎え・すれ違い</button>
-                <button class="kanpe-tab" onclick="switchKanpe('gyoji', this)">参観日・行事</button>
-                <button class="kanpe-tab" onclick="switchKanpe('line', this)">LINE・連絡</button>
-            </div>
-
-            <div id="kanpe-omukae" class="kanpe-panel">
-                <div class="kan
+        function doClean() {
+            document.getElementById('s1').value = '';
+            document.getElementById('s2').value = '';
+            document.getElementById('s3').value = '';
+            alert("モヤモヤをスッキリ消去しました✨");
+        }
+    </script>
+</body>
+</html>
