@@ -32,7 +32,6 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow-x: hidden;
         }
 
         header {
@@ -70,7 +69,6 @@
             color: var(--text-light);
             border-radius: 24px;
             cursor: pointer;
-            transition: all 0.2s ease;
         }
 
         .nav-btn.active {
@@ -82,16 +80,10 @@
 
         .panel {
             display: none;
-            animation: fadeIn 0.3s ease;
         }
 
         .panel.active {
             display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .card {
@@ -114,11 +106,6 @@
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(140, 166, 149, 0.3);
             margin-top: 12px;
-            transition: transform 0.1s ease;
-        }
-
-        .action-btn:active {
-            transform: scale(0.97);
         }
 
         .action-btn:disabled {
@@ -127,7 +114,7 @@
             cursor: not-allowed;
         }
 
-        /* GACHA BOX & ANIMATION */
+        /* GACHA BOX */
         .gacha-box {
             background: linear-gradient(135deg, #F0F5F1 0%, #E2EDE4 100%);
             border-radius: 12px;
@@ -142,235 +129,11 @@
             font-size: 0.95rem;
             line-height: 1.7;
             font-weight: 500;
-            position: relative;
-            overflow: hidden;
         }
 
-        /* ガチャが回っているときのエフェクト */
-        @keyframes gachaSpin {
-            0% { transform: scale(0.8) rotate(0deg); opacity: 0.3; }
-            50% { transform: scale(1.1) rotate(5deg); opacity: 0.8; }
-            100% { transform: scale(1) rotate(0deg); opacity: 1; }
-        }
-
-        .gacha-animating {
-            animation: gachaSpin 0.5s ease-in-out;
-            background: linear-gradient(135deg, #E2EDE4 0%, #C8DCD0 100%) !important;
-        }
-
-        /* WORK & CRUMPLE ANIMATION */
+        /* WORK & CRUMPLE */
         .work-title {
             font-size: 0.85rem;
             font-weight: 600;
             color: var(--primary-dark);
             margin-bottom: 4px;
-        }
-
-        .work-desc {
-            font-size: 0.75rem;
-            color: var(--text-light);
-            margin-bottom: 8px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 75px;
-            padding: 10px;
-            border: 1px solid #D5DDD6;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            resize: none;
-            background: #FAFAFA;
-            outline: none;
-            margin-bottom: 14px;
-        }
-
-        .analysis-box {
-            background: #F4F7F4;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 14px;
-            font-size: 0.8rem;
-            line-height: 1.5;
-            display: none;
-            border-left: 3px solid var(--primary);
-        }
-
-        @keyframes crumpleAndFall {
-            0% { transform: scale(1) rotate(0deg); opacity: 1; filter: blur(0); }
-            40% { transform: scale(0.6) rotate(15deg) skewX(20deg); filter: blur(1px); background: #E2EDE4; }
-            80% { transform: scale(0.1) rotate(-45deg) translate(0px, 400px); opacity: 0.8; filter: blur(3px); }
-            100% { transform: scale(0) rotate(-90deg) translate(0px, 600px); opacity: 0; }
-        }
-
-        .crumpling {
-            animation: crumpleAndFall 0.9s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
-            pointer-events: none;
-        }
-
-        .trash-bin-area {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 1.2rem;
-            color: var(--text-light);
-            font-weight: bold;
-        }
-
-        footer {
-            text-align: center;
-            font-size: 0.7rem;
-            color: var(--text-light);
-            padding: 20px 0 10px 0;
-            margin-top: auto;
-        }
-    </style>
-</head>
-<body id="appBody">
-
-    <header>
-        <h1>心のおまもり＆デトックス</h1>
-        <p>今日もよく耐えたあなたへ。肩の力を抜く場所。</p>
-    </header>
-
-    <div class="nav">
-        <button class="nav-btn active" onclick="switchTab('t1', this)">今日のお守り</button>
-        <button class="nav-btn" onclick="switchTab('t2', this)">モヤモヤ仕分け</button>
-        <button class="nav-btn" onclick="switchTab('t3', this)">行動カンペガチャ</button>
-    </div>
-
-    <!-- TAB 1: ガチャ -->
-    <div id="t1" class="panel active">
-        <div class="card">
-            <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 12px; text-align: center;">1日1回引ける、あなたへのメッセージ</p>
-            <div class="gacha-box" id="gachaView">ガチャを回して、今日のお守り言葉を受け取ってね🌿</div>
-            <button class="action-btn" id="gachaButton" onclick="drawGacha()">🎁 今日のお守りガチャを回す</button>
-            <p id="msgView" style="font-size: 0.8rem; text-align: center; color: var(--text-light); margin-top: 12px;"></p>
-        </div>
-    </div>
-
-    <!-- TAB 2: モヤモヤ仕分け＆ゴミ箱アニメ -->
-    <div id="t2" class="panel">
-        <div class="card" id="detoxCard">
-            <div class="work-title">STEP 1｜モヤモヤを吐き出す</div>
-            <div class="work-desc">今頭の中にある嫌なこと・不安をそのまま書いてね。</div>
-            <textarea id="s1" placeholder="例：お迎えのとき挨拶したのに目を合わせてくれなかった…"></textarea>
-
-            <button class="action-btn" onclick="analyzeWork()" style="margin-bottom: 16px; background: #6D8577;">⚖️ 事実と感情を仕分ける</button>
-
-            <div id="analysisResult" class="analysis-box">
-                <b>📌 分析結果（自動仕分け）</b>
-                <div id="factText" style="margin-top: 4px; margin-bottom: 6px;"></div>
-                <div id="emotionText"></div>
-            </div>
-
-            <div class="work-title">STEP 3｜自分ルール（避難訓練）</div>
-            <div class="work-desc">「こうなったらこうする」の対策を決めておこう。</div>
-            <textarea id="s3" placeholder="【ルール】挨拶だけして我が子に集中！深く考えない。"></textarea>
-
-            <button class="action-btn" onclick="crumpleAndClean()" style="background: #D98282;">🗑️ モヤモヤをぐしゃぐしゃに丸めて捨てる</button>
-        </div>
-        <div class="trash-bin-area" id="trashBin" style="display: none;">🗑️ スー…（モヤモヤ消去完了！）✨</div>
-    </div>
-
-    <!-- TAB 3: 行動カンペガチャ -->
-    <div id="t3" class="panel">
-        <div class="card">
-            <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 12px; text-align: center;">引くたびに新しい自衛テクニックに出会える！</p>
-            
-            <div class="gacha-box" id="kanpeResult" style="background: linear-gradient(135deg, #FAFDFB 0%, #EAEFEA 100%);">
-                ボタンを押して、今日の「お守り自衛カード」をガチャしよう🌿
-            </div>
-
-            <button class="action-btn" onclick="drawKanpe()" id="kanpeBtn">🎲 自衛カードガチャを回す</button>
-        </div>
-    </div>
-
-    <footer>
-        <p>&copy; 心のおまもりアプリ</p>
-    </footer>
-
-    <script>
-        function switchTab(id, btn) {
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            btn.classList.add('active');
-        }
-
-        // --- TAB 1: ガチャ演出 ---
-        const gachaList = [
-            "相手の機嫌は相手の持ち物。あなたが背負う必要はありません。",
-            "挨拶をした。それだけであなたの勝ち！返事は相手の問題です。",
-            "去る者は追わず。離れていく人は、あなたの人生に必要ない人です。",
-            "誰にでも好かれる必要はありません。自分が自分を好きなら満点！",
-            "今日は自分を甘やかす日。美味しいものを食べてぐっすり寝よう。",
-            "人生の主役はあなた。脇役に心をかき乱させないで！",
-            "今日無事に過ごせただけで大成功。よく頑張ったね！",
-            "気にしちゃうのは自然現象。心が「自分を守ろう」と頑張っているサインです。",
-            "完璧なママなんてどこにもいない。無事に一日が終われば100点！",
-            "違和感を感じた直感は正しい。その感覚を信じてそっと距離を置こう。"
-        ];
-
-        function drawGacha() {
-            const today = new Date().toDateString();
-            if (localStorage.getItem('gDay') === today) return;
-
-            const box = document.getElementById('gachaView');
-            box.classList.add('gacha-animating');
-            box.textContent = "カプセル回転中…✨";
-
-            setTimeout(() => {
-                box.classList.remove('gacha-animating');
-                const text = gachaList[Math.floor(Math.random() * gachaList.length)];
-                box.textContent = text;
-                localStorage.setItem('gDay', today);
-                localStorage.setItem('gText', text);
-                
-                const btn = document.getElementById('gachaButton');
-                btn.disabled = true;
-                document.getElementById('msgView').textContent = "今日のガチャは終了しました🌿 また明日ね。";
-            }, 500);
-        }
-
-        window.onload = function() {
-            const today = new Date().toDateString();
-            if (localStorage.getItem('gDay') === today) {
-                document.getElementById('gachaView').textContent = localStorage.getItem('gText');
-                const btn = document.getElementById('gachaButton');
-                btn.disabled = true;
-                document.getElementById('msgView').textContent = "今日のガチャはすでに引いています🌿 また明日ね。";
-            }
-        };
-
-        // --- TAB 2: 仕分け & ゴミ箱アニメ ---
-        function analyzeWork() {
-            const text = document.getElementById('s1').value.trim();
-            if (!text) {
-                alert("まずはモヤモヤを書き出してみよう！");
-                return;
-            }
-            const resBox = document.getElementById('analysisResult');
-            document.getElementById('factText').innerHTML = `・<b>事実：</b>${text.substring(0, 32)}…`;
-            document.getElementById('emotionText').innerHTML = `・<b>感情・妄想：</b>「私のせいかも」「嫌われた？」というのはあなたの心の中の推測です。相手の課題と自分を切り離そう！`;
-            resBox.style.display = 'block';
-        }
-
-        function crumpleAndClean() {
-            const card = document.getElementById('detoxCard');
-            card.classList.add('crumpling');
-
-            setTimeout(() => {
-                card.style.display = 'none';
-                document.getElementById('trashBin').style.display = 'block';
-                
-                setTimeout(() => {
-                    document.getElementById('s1').value = '';
-                    document.getElementById('s3').value = '';
-                    document.getElementById('analysisResult').style.display = 'none';
-                    card.classList.remove('crumpling');
-                    card.style.display = 'block';
-                    document.getElementById('trashBin').style.display = 'none';
-                    alert("モヤモヤを綺麗にゴミ箱へ捨てました！今日もよく頑張りました✨");
-                }, 1400);
-            }, 900);
-        }
