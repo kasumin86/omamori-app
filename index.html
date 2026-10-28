@@ -597,7 +597,7 @@ function getGreetingByTime() {
 updateDailyStatus();
 renderMemos();
 
-if (!getStore('omamoriDaily', {}).date) {
+if (getStore('omamoriDaily', {}).date !== today()) {
   $('gachaMessage').textContent = getGreetingByTime();
 }
 
