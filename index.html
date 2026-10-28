@@ -1,67 +1,401 @@
-<!DOCTYPE html>
+from pathlib import Path
+
+html = r'''<!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>心のおまもり＆デトックス</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            background: #F7F9F6;
-            color: #3A443B;
-            padding: 20px;
-            max-width: 480px;
-            margin: 0 auto;
-        }
-        h1 {
-            font-size: 1.2rem;
-            text-align: center;
-            color: #6D8577;
-        }
-        .box {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            margin-top: 20px;
-            text-align: center;
-        }
-        button {
-            width: 100%;
-            padding: 14px;
-            font-size: 1rem;
-            font-weight: bold;
-            color: white;
-            background: #8CA695;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#e8efe5">
+<title>心のおまもり＆デトックス</title>
+<style>
+  :root {
+    --sage: #71866b;
+    --sage-dark: #465b43;
+    --sage-pale: #e8efe5;
+    --cream: #fbfaf5;
+    --ink: #343a32;
+    --muted: #777c73;
+    --line: #dce3d7;
+    --peach: #f5e9dd;
+    --white: #fffefa;
+    --shadow: 0 8px 24px rgba(54, 71, 50, .07);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--cream); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
+      "Yu Gothic", Meiryo, sans-serif; line-height: 1.7;
+  }
+  button, textarea, input { font: inherit; }
+  button { cursor: pointer; }
+  .app { max-width: 720px; margin: 0 auto; min-height: 100vh; padding: 24px 18px 105px; }
+  header { text-align: center; padding: 10px 0 24px; }
+  .leaf { font-size: 28px; }
+  h1 { font-size: clamp(23px, 5vw, 30px); letter-spacing: .04em; margin: 3px 0 4px; color: var(--sage-dark); }
+  .subtitle { margin: 0; color: var(--muted); font-size: 14px; }
+  .tab-panel { display: none; animation: fade .2s ease; }
+  .tab-panel.active { display: block; }
+  @keyframes fade { from { opacity: .5; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+  .intro { text-align: center; margin: 8px 0 20px; }
+  .intro h2 { margin: 0 0 6px; font-size: 21px; color: var(--sage-dark); }
+  .intro p { margin: 0; font-size: 14px; color: var(--muted); }
+  .card {
+    background: var(--white); border: 1px solid var(--line); border-radius: 22px;
+    padding: 22px; box-shadow: var(--shadow); margin-bottom: 16px;
+  }
+  .gacha-card { text-align: center; padding: 30px 22px; }
+  .tiny-label { font-size: 12px; letter-spacing: .12em; color: var(--sage); font-weight: 700; }
+  .message { min-height: 118px; display: grid; place-items: center; padding: 15px 2px; }
+  .message p { margin: 0; font-size: clamp(19px, 4vw, 24px); font-weight: 650; line-height: 1.8; color: var(--sage-dark); }
+  .primary, .secondary, .soft-button {
+    border: 0; border-radius: 999px; padding: 13px 21px; font-weight: 700;
+    transition: transform .12s ease, opacity .12s ease;
+  }
+  button:active { transform: scale(.98); }
+  .primary { background: var(--sage); color: white; box-shadow: 0 5px 12px rgba(74, 96, 68, .16); }
+  .primary:hover { background: var(--sage-dark); }
+  .secondary { background: #edf2e9; color: var(--sage-dark); }
+  .soft-button { background: transparent; color: var(--sage-dark); border: 1px solid var(--line); padding: 9px 14px; font-size: 13px; }
+  .actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
+  .note { background: #f4f3eb; border-radius: 15px; padding: 14px 16px; color: #666b60; font-size: 13px; }
+  label { display: block; font-weight: 700; margin: 0 0 9px; }
+  .field-help { margin: -4px 0 12px; color: var(--muted); font-size: 13px; }
+  textarea {
+    display: block; width: 100%; min-height: 145px; resize: vertical;
+    border: 1px solid #d8dfd3; background: #fff; border-radius: 15px;
+    padding: 14px; outline: none; color: var(--ink);
+  }
+  textarea:focus, input:focus { border-color: var(--sage); box-shadow: 0 0 0 3px rgba(113,134,107,.13); }
+  .work-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 13px; }
+  .work-actions button { flex: 1; min-width: 135px; }
+  .results { display: none; margin-top: 18px; }
+  .results.show { display: block; }
+  .result-heading { display: flex; align-items: center; gap: 8px; font-weight: 750; margin: 0 0 10px; }
+  .result-box { border-radius: 16px; padding: 15px; margin: 10px 0; }
+  .fact-box { background: var(--sage-pale); }
+  .other-box { background: var(--peach); }
+  .result-box ul { margin: 0; padding-left: 21px; }
+  .result-box li { margin: 5px 0; }
+  .empty { color: #7d8279; font-size: 14px; }
+  .advice { border: 1px solid var(--line); background: #fffefa; border-radius: 16px; padding: 16px; margin-top: 13px; }
+  .advice h3 { font-size: 16px; margin: 0 0 6px; color: var(--sage-dark); }
+  .advice p { margin: 0; }
+  .action-list { display: grid; gap: 8px; margin-top: 10px; }
+  .action-item { display: flex; align-items: flex-start; gap: 9px; }
+  .action-item span:first-child { color: var(--sage); font-weight: 800; }
+  .fine-print { color: var(--muted); font-size: 12px; margin-top: 12px; }
+  .memo-item { border: 1px solid var(--line); border-radius: 15px; padding: 14px; margin-top: 10px; background: white; }
+  .memo-item p { white-space: pre-wrap; margin: 0 0 9px; }
+  .memo-item small { color: var(--muted); }
+  .memo-item button { margin-top: 8px; }
+  .empty-state { text-align: center; color: var(--muted); padding: 28px 10px; }
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 5;
+    background: rgba(251,250,245,.96); backdrop-filter: blur(12px);
+    border-top: 1px solid var(--line); padding: 9px max(10px, env(safe-area-inset-right)) calc(9px + env(safe-area-inset-bottom));
+    display: flex; justify-content: center; gap: 8px;
+  }
+  .nav-button {
+    border: 0; background: transparent; color: #7b8176; border-radius: 14px;
+    padding: 8px 12px; min-width: 92px; font-size: 12px; font-weight: 700;
+  }
+  .nav-button .nav-icon { display: block; font-size: 19px; line-height: 1.4; }
+  .nav-button.active { background: var(--sage-pale); color: var(--sage-dark); }
+  .toast { position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%); background: #354b35; color: white; padding: 9px 16px; border-radius: 999px; font-size: 13px; display: none; z-index: 8; max-width: 90%; text-align: center; }
+  @media (min-width: 600px) { .app { padding-top: 35px; } .card { padding: 26px; } }
+</style>
 </head>
 <body>
-
+<div class="app">
+  <header>
+    <div class="leaf" aria-hidden="true">🌿</div>
     <h1>心のおまもり＆デトックス</h1>
+    <p class="subtitle">気持ちを整理して、自分の心を守る小さな場所。</p>
+  </header>
 
-    <div class="box">
-        <p id="gachaText">ボタンを押して、今日のエールを受け取ってね🌿</p>
-        <button onclick="runGacha()">🎁 ガチャを回す</button>
-    </div>
+  <main>
+    <section class="tab-panel active" id="tab-gacha">
+      <div class="intro">
+        <h2>今日のおまもり</h2>
+        <p>気持ちがモヤモヤするとき、ひとこと受け取ってね。</p>
+      </div>
+      <div class="card gacha-card">
+        <div class="tiny-label">YOUR LITTLE CHARM</div>
+        <div class="message" aria-live="polite"><p id="gachaMessage">相手の機嫌は相手の持ち物。あなたが背負う必要はありません。</p></div>
+        <div class="actions">
+          <button class="primary" id="drawButton">おまもりを引く 🌱</button>
+          <button class="soft-button" id="saveCharmButton">♡ お守りメモに保存</button>
+        </div>
+      </div>
+      <div class="note">気になるものは気になる！！！ 無理に忘れようとしなくても大丈夫。少しずつ、自分の時間を取り戻していこう。</div>
+    </section>
 
-    <script>
-        const messages = [
-            "相手の機嫌は相手の持ち物。あなたが背負う必要はありません。",
-            "挨拶をした。それだけであなたの勝ち！返事は相手の問題です。",
-            "誰にでも好かれる必要はありません。自分が自分を好きなら満点！",
-            "今日無事に過ごせただけで大成功。よく頑張ったね！"
-        ];
+    <section class="tab-panel" id="tab-work">
+      <div class="intro">
+        <h2>実践ワーク</h2>
+        <p>頭の中のモヤモヤを、いったん外に出してみよう。</p>
+      </div>
+      <div class="card">
+        <label for="thoughtInput">いま気になっていることを書いてね</label>
+        <p class="field-help">きれいに書かなくてOK。起きたことも、想像も、気持ちも、そのままで大丈夫。</p>
+        <textarea id="thoughtInput" placeholder="例：挨拶したのに返事がなかった。嫌われているのかな。明日会うのも嫌だな……"></textarea>
+        <div class="work-actions">
+          <button class="primary" id="sortButton">事実とそれ以外に分ける</button>
+          <button class="secondary" id="clearButton">書き直す</button>
+        </div>
+        <p class="fine-print">文章の特徴をもとにした簡易的な自動分類です。完璧ではないので、違うと感じたら下の分類を自分で直してね。</p>
+        <div class="results" id="results" aria-live="polite">
+          <div class="result-box fact-box">
+            <p class="result-heading">🌿 事実として書かれていること</p>
+            <ul id="factList"></ul>
+            <p class="empty" id="factEmpty" hidden>事実として判断できる文は見つからなかったよ。</p>
+            <button class="soft-button" id="moveFactButton">選んだ文を「それ以外」へ</button>
+          </div>
+          <div class="result-box other-box">
+            <p class="result-heading">☁️ それ以外（想像・気持ち・予想）</p>
+            <ul id="otherList"></ul>
+            <p class="empty" id="otherEmpty" hidden>こちらに分けられた文はないよ。</p>
+            <button class="soft-button" id="moveOtherButton">選んだ文を「事実」へ</button>
+          </div>
+          <div class="advice">
+            <h3>ひとことアドバイス</h3>
+            <p id="adviceText"></p>
+          </div>
+          <div class="advice">
+            <h3>いまできること</h3>
+            <div class="action-list" id="actionList"></div>
+          </div>
+          <div class="actions">
+            <button class="primary" id="saveWorkButton">このワークをお守りメモに保存</button>
+          </div>
+        </div>
+      </div>
+      <div class="note">「それ以外」は、間違いという意味じゃないよ。不安も悲しみも大切な気持ち。ただ、事実と想像を分けると、少しだけ心に余白ができることがあります。</div>
+    </section>
 
-        function runGacha() {
-            const randomMsg = messages[Math.floor(Math.random() * messages.length)];
-            document.getElementById('gachaText').textContent = randomMsg;
-        }
-    </script>
+    <section class="tab-panel" id="tab-memo">
+      <div class="intro">
+        <h2>わたしのお守りメモ</h2>
+        <p>残しておきたい言葉や、整理した気持ちを置いておける場所。</p>
+      </div>
+      <div class="card">
+        <label for="personalMemo">自分だけのお守りメモ</label>
+        <textarea id="personalMemo" placeholder="いまの自分にかけてあげたい言葉、次にできそうなこと……"></textarea>
+        <div class="actions" style="justify-content:flex-start">
+          <button class="primary" id="savePersonalMemo">メモを保存</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin:0;color:var(--sage-dark)">保存したもの</h3>
+        <div id="savedList"><div class="empty-state">まだ保存したものはありません。<br>心に残った言葉を保存してみてね。</div></div>
+      </div>
+      <p class="fine-print">メモはこのブラウザ内に保存されます。同じ端末・ブラウザで開くと見られますが、ブラウザのデータを消すと失われることがあります。</p>
+    </section>
+  </main>
+</div>
 
+<nav class="bottom-nav" aria-label="メインメニュー">
+  <button class="nav-button active" data-tab="gacha"><span class="nav-icon">🌱</span>ガチャ</button>
+  <button class="nav-button" data-tab="work"><span class="nav-icon">📝</span>実践ワーク</button>
+  <button class="nav-button" data-tab="memo"><span class="nav-icon">♡</span>お守りメモ</button>
+</nav>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  const charms = [
+    "相手の機嫌は相手の持ち物。あなたが背負う必要はありません。",
+    "挨拶をした。それだけでOK！返事をするかどうかは相手の問題です。",
+    "誰にでも好かれる必要はありません。無理して全員に合わせなくて大丈夫。",
+    "今日すぐに気持ちを切り替えられなくても大丈夫。それだけ傷ついたんだよね。",
+    "相手の本当の気持ちは、本人にしか分からないこともあるよ。",
+    "距離を置くことは、意地悪じゃなくて自分を守る方法のひとつ。",
+    "子ども同士の関係と、親同士の関係は、分けて考えてもいいんだよ。",
+    "今すぐ答えを出さなくても大丈夫。今日はここまで、でもOK。",
+    "相性が合わない人がいるのは自然なこと。全員と仲良くしなくていい。",
+    "相手のことを考え続けて疲れたら、自分の好きなことに戻ってきてね。",
+    "気になるものは気になる！！！ 無理に忘れようと頑張らなくても大丈夫。",
+    "あなたができるのは自分の行動を選ぶこと。相手の気持ちまで背負わなくていい。"
+  ];
+  const $ = id => document.getElementById(id);
+  let currentCharm = charms[0];
+  let factItems = [];
+  let otherItems = [];
+  let selected = { fact: -1, other: -1 };
+  let saved = loadSaved();
+
+  function loadSaved() {
+    try { return JSON.parse(localStorage.getItem("kokoroOmamoriSaved") || "[]"); }
+    catch (_) { return []; }
+  }
+  function persistSaved() {
+    try { localStorage.setItem("kokoroOmamoriSaved", JSON.stringify(saved)); }
+    catch (_) { toast("保存できませんでした。ブラウザの設定を確認してね。"); }
+    renderSaved();
+  }
+  function toast(message) {
+    const el = $("toast");
+    el.textContent = message;
+    el.style.display = "block";
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => el.style.display = "none", 2300);
+  }
+  function switchTab(name) {
+    document.querySelectorAll(".tab-panel").forEach(el => el.classList.toggle("active", el.id === "tab-" + name));
+    document.querySelectorAll(".nav-button").forEach(el => el.classList.toggle("active", el.dataset.tab === name));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (name === "memo") renderSaved();
+  }
+  document.querySelectorAll(".nav-button").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
+
+  $("drawButton").addEventListener("click", () => {
+    let next = currentCharm;
+    if (charms.length > 1) while (next === currentCharm) next = charms[Math.floor(Math.random() * charms.length)];
+    currentCharm = next;
+    $("gachaMessage").textContent = currentCharm;
+  });
+  $("saveCharmButton").addEventListener("click", () => addSaved({ type: "お守りの言葉", text: currentCharm }));
+
+  // A deliberately lightweight heuristic classifier, not an AI or a definitive judgment.
+  const factSignals = /(した|してくれた|言われた|と言われた|届いた|来た|来なかった|返事がなかった|返事が来なかった|見た|聞いた|会った|会わなかった|起きた|あった|なかった|送った|送られた|断られた|誘われた|誘われなかった|連絡がない|連絡が来た|挨拶した|無視された|泣いた|怒鳴られた|約束した|遅刻した|欠席した|参加した|退会した|ブロックされた|既読になった|未読のまま|言った|書いてあった|投稿していた|その場にいた|帰った|来た。?$)/;
+  const subjectiveSignals = /(かな|かも|気がする|と思う|と思った|感じる|感じた|嫌われ|避けられ|怒ってる|怒っている|嫌なの|嫌だ|怖い|不安|悲しい|つらい|辛い|ムカつく|腹が立つ|きっと|絶対|たぶん|どうせ|わざと|本当は|に違いない|はず|だろう|かもしれない|心配|恥ずかしい|会いたくない|嫌われている|仲間外れ|私のせい|自分が悪い|最悪|しんどい|落ち込んだ|傷ついた)/;
+  function classifyLine(line) {
+    const s = line.trim();
+    if (!s) return "other";
+    const subjective = subjectiveSignals.test(s);
+    const factual = factSignals.test(s) || /(返事がなかった|挨拶した|LINEを送った|メッセージを送った|誘った|断られた|既読がついた|約束の時間を過ぎた)/.test(s);
+    if (subjective && !factual) return "other";
+    if (subjective && factual) return "mixed";
+    if (factual) return "fact";
+    // Statements framed as questions, predictions, or interpretations are treated as non-factual.
+    if (/[？?]|かな|かも|きっと|たぶん|だと思|はず/.test(s)) return "other";
+    return "other";
+  }
+  function splitText(text) {
+    return text.split(/\n+|(?<=[。！？!?])/).map(s => s.trim()).filter(Boolean);
+  }
+  function sortThoughts() {
+    const text = $("thoughtInput").value.trim();
+    if (!text) { toast("まずは、気になっていることを書いてみてね。"); $("thoughtInput").focus(); return; }
+    factItems = []; otherItems = []; selected = { fact: -1, other: -1 };
+    splitText(text).forEach(line => {
+      const result = classifyLine(line);
+      if (result === "fact") factItems.push(line);
+      else if (result === "mixed") {
+        // Preserve the user's original words, and invite them to choose the best category.
+        otherItems.push(line);
+      } else otherItems.push(line);
+    });
+    renderClassification();
+    $("results").classList.add("show");
+    $("results").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  function renderList(list, kind, targetId, emptyId) {
+    const ul = $(targetId); ul.innerHTML = "";
+    list.forEach((text, index) => {
+      const li = document.createElement("li");
+      const label = document.createElement("label");
+      label.style.cssText = "display:flex;gap:8px;align-items:flex-start;font-weight:400;margin:0;cursor:pointer";
+      const radio = document.createElement("input");
+      radio.type = "radio"; radio.name = "select-" + kind; radio.checked = selected[kind] === index;
+      radio.addEventListener("change", () => { selected[kind] = index; });
+      const span = document.createElement("span"); span.textContent = text;
+      label.append(radio, span); li.appendChild(label); ul.appendChild(li);
+    });
+    $(emptyId).hidden = list.length > 0;
+  }
+  function renderClassification() {
+    renderList(factItems, "fact", "factList", "factEmpty");
+    renderList(otherItems, "other", "otherList", "otherEmpty");
+    const all = factItems.concat(otherItems).join(" ");
+    let advice = "今すぐ相手の気持ちや理由を決めなくても大丈夫。分からないことは、分からないまま置いておいていいよ。";
+    let actions = [
+      "次に会ったら、無理のない範囲で挨拶だけする。",
+      "相手の反応を追いかけるのを少し休んで、お茶や深呼吸でひと息つく。",
+      "今日、自分がほっとできることをひとつ選ぶ。"
+    ];
+    if (/(挨拶|返事|無視|返ってこな|返信|既読|未読)/.test(all)) {
+      advice = "返事がなかったことは事実でも、その理由まではまだ分からないよ。挨拶できたなら、あなたができることはできている。";
+      actions = ["次に会ったときは、無理のない範囲で挨拶だけでOK。", "返事をもらうために、何度も機嫌を取らなくて大丈夫。", "相手の反応から少し離れて、自分の予定に意識を戻してみる。"];
+    } else if (/(嫌われ|仲間外れ|避けられ|悪口|陰口)/.test(all)) {
+      advice = "そう感じると不安になるよね。ただ、相手の本心は想像だけでは確定できないこともある。自分を責める結論を急がなくて大丈夫。";
+      actions = ["確認できている出来事と、想像していることをもう一度分けてみる。", "安心して話せる人や場所に気持ちを向ける。", "つらい相手とは、必要なやり取りだけにして距離を調整してもいい。"];
+    } else if (/(会いたくない|疲れ|しんど|つら|悲し|不安|怖い|傷つ)/.test(all)) {
+      advice = "それだけ心が疲れているのかもしれないね。無理に前向きにならなくていいし、すぐに気持ちを切り替えられなくても大丈夫。";
+      actions = ["今日は大きな決断をしないで、ひとまず休む。", "会話や集まりを、無理のない範囲で短めにしてもいい。", "好きな食べ物・お茶・趣味など、自分のための時間を少し作る。"];
+    }
+    $("adviceText").textContent = advice;
+    $("actionList").innerHTML = "";
+    actions.forEach(action => {
+      const row = document.createElement("div"); row.className = "action-item";
+      const tick = document.createElement("span"); tick.textContent = "✓";
+      const txt = document.createElement("span"); txt.textContent = action;
+      row.append(tick, txt); $("actionList").appendChild(row);
+    });
+  }
+  $("sortButton").addEventListener("click", sortThoughts);
+  $("clearButton").addEventListener("click", () => {
+    $("thoughtInput").value = ""; $("results").classList.remove("show");
+    factItems = []; otherItems = []; selected = { fact: -1, other: -1 };
+    $("thoughtInput").focus();
+  });
+  $("moveFactButton").addEventListener("click", () => moveSelected("fact"));
+  $("moveOtherButton").addEventListener("click", () => moveSelected("other"));
+  function moveSelected(from) {
+    const index = selected[from];
+    const list = from === "fact" ? factItems : otherItems;
+    if (index < 0 || index >= list.length) { toast("移動したい文を選んでね。"); return; }
+    const [item] = list.splice(index, 1);
+    if (from === "fact") otherItems.push(item); else factItems.push(item);
+    selected = { fact: -1, other: -1 };
+    renderClassification();
+  }
+  $("saveWorkButton").addEventListener("click", () => {
+    if (!$("results").classList.contains("show")) return;
+    const text = "書いたこと：\n" + $("thoughtInput").value.trim() +
+      "\n\n【事実】\n" + (factItems.join("\n") || "（なし）") +
+      "\n\n【それ以外】\n" + (otherItems.join("\n") || "（なし）") +
+      "\n\n【ひとことアドバイス】\n" + $("adviceText").textContent +
+      "\n\n【いまできること】\n" + [...$("actionList").querySelectorAll(".action-item span:last-child")].map(el => "・" + el.textContent).join("\n");
+    addSaved({ type: "実践ワーク", text });
+  });
+
+  function addSaved(item) {
+    saved.unshift({ ...item, date: new Date().toLocaleString("ja-JP", { year: "numeric", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) });
+    saved = saved.slice(0, 50);
+    persistSaved();
+    toast("お守りメモに保存したよ ♡");
+  }
+  $("savePersonalMemo").addEventListener("click", () => {
+    const text = $("personalMemo").value.trim();
+    if (!text) { toast("メモを書いてから保存してね。"); return; }
+    addSaved({ type: "自分のお守りメモ", text });
+    $("personalMemo").value = "";
+  });
+  function renderSaved() {
+    const container = $("savedList"); container.innerHTML = "";
+    if (!saved.length) {
+      const empty = document.createElement("div"); empty.className = "empty-state";
+      empty.innerHTML = "まだ保存したものはありません。<br>心に残った言葉を保存してみてね。";
+      container.appendChild(empty); return;
+    }
+    saved.forEach((item, index) => {
+      const card = document.createElement("div"); card.className = "memo-item";
+      const tag = document.createElement("small"); tag.textContent = item.type + " ・ " + item.date;
+      const p = document.createElement("p"); p.textContent = item.text;
+      const del = document.createElement("button"); del.className = "soft-button"; del.textContent = "このメモを削除";
+      del.addEventListener("click", () => {
+        saved.splice(index, 1); persistSaved(); toast("メモを削除したよ。");
+      });
+      card.append(tag, p, del); container.appendChild(card);
+    });
+  }
+  renderSaved();
+})();
+</script>
 </body>
 </html>
+'''
+path = Path("/mnt/data/kokoro_omamori_detox.html")
+path.write_text(html, encoding="utf-8")
+print(f"作成しました: {path} ({path.stat().st_size:,} bytes)")
