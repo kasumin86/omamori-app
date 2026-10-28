@@ -1,6 +1,5 @@
-from pathlib import Path
 
-html = r'''<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -123,11 +122,12 @@ html = r'''<!DOCTYPE html>
         <div class="tiny-label">YOUR LITTLE CHARM</div>
         <div class="message" aria-live="polite"><p id="gachaMessage">相手の機嫌は相手の持ち物。あなたが背負う必要はありません。</p></div>
         <div class="actions">
-          <button class="primary" id="drawButton">おまもりを引く 🌱</button>
+          <button class="primary" id="drawButton">今日のおまもりを受け取る 🌱</button>
           <button class="soft-button" id="saveCharmButton">♡ お守りメモに保存</button>
         </div>
+        <p id="dailyStatus" class="small-note" aria-live="polite">今日のおまもりは、1日1回。ゆっくり受け取ってね。</p>
       </div>
-      <div class="note">気になるものは気になる！！！ 無理に忘れようとしなくても大丈夫。少しずつ、自分の時間を取り戻していこう。</div>
+      <div class="note">気になるものは気になる！！！ 無理に忘れようとしなくても大丈夫。少しずつ、自分の時間を取り戻していこう。<br>ガチャは1日1回。でも、心を整える場所にはいつでも戻ってきてね。</div>
     </section>
 
     <section class="tab-panel" id="tab-work">
@@ -179,223 +179,413 @@ html = r'''<!DOCTYPE html>
         <p>残しておきたい言葉や、整理した気持ちを置いておける場所。</p>
       </div>
       <div class="card">
-        <label for="personalMemo">自分だけのお守りメモ</label>
-        <textarea id="personalMemo" placeholder="いまの自分にかけてあげたい言葉、次にできそうなこと……"></textarea>
-        <div class="actions" style="justify-content:flex-start">
-          <button class="primary" id="savePersonalMemo">メモを保存</button>
+
+        <label for="memoInput">自分だけのお守り言葉</label>
+        <textarea id="memoInput" placeholder="例：無理して仲良くしなくてもいい。私は私のペースで大丈夫。"></textarea>
+        <div class="actions">
+          <button class="primary" id="saveNoteButton">この言葉を保存する</button>
         </div>
+        <div id="memoList"></div>
+        <p class="fine-print">メモはこのブラウザ内に保存されます。別の端末とは共有されません。</p>
       </div>
-      <div class="card">
-        <h3 style="margin:0;color:var(--sage-dark)">保存したもの</h3>
-        <div id="savedList"><div class="empty-state">まだ保存したものはありません。<br>心に残った言葉を保存してみてね。</div></div>
-      </div>
-      <p class="fine-print">メモはこのブラウザ内に保存されます。同じ端末・ブラウザで開くと見られますが、ブラウザのデータを消すと失われることがあります。</p>
     </section>
   </main>
 </div>
 
 <nav class="bottom-nav" aria-label="メインメニュー">
-  <button class="nav-button active" data-tab="gacha"><span class="nav-icon">🌱</span>ガチャ</button>
+  <button class="nav-button active" data-tab="gacha"><span class="nav-icon">🌱</span>今日のおまもり</button>
   <button class="nav-button" data-tab="work"><span class="nav-icon">📝</span>実践ワーク</button>
   <button class="nav-button" data-tab="memo"><span class="nav-icon">♡</span>お守りメモ</button>
 </nav>
-<div class="toast" id="toast" role="status"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-(() => {
-  const charms = [
-    "相手の機嫌は相手の持ち物。あなたが背負う必要はありません。",
-    "挨拶をした。それだけでOK！返事をするかどうかは相手の問題です。",
-    "誰にでも好かれる必要はありません。無理して全員に合わせなくて大丈夫。",
-    "今日すぐに気持ちを切り替えられなくても大丈夫。それだけ傷ついたんだよね。",
-    "相手の本当の気持ちは、本人にしか分からないこともあるよ。",
-    "距離を置くことは、意地悪じゃなくて自分を守る方法のひとつ。",
-    "子ども同士の関係と、親同士の関係は、分けて考えてもいいんだよ。",
-    "今すぐ答えを出さなくても大丈夫。今日はここまで、でもOK。",
-    "相性が合わない人がいるのは自然なこと。全員と仲良くしなくていい。",
-    "相手のことを考え続けて疲れたら、自分の好きなことに戻ってきてね。",
-    "気になるものは気になる！！！ 無理に忘れようと頑張らなくても大丈夫。",
-    "あなたができるのは自分の行動を選ぶこと。相手の気持ちまで背負わなくていい。"
-  ];
-  const $ = id => document.getElementById(id);
-  let currentCharm = charms[0];
-  let factItems = [];
-  let otherItems = [];
-  let selected = { fact: -1, other: -1 };
-  let saved = loadSaved();
+const charms = [
+"相手の機嫌は相手の持ち物。あなたが背負う必要はありません。",
+"気になっちゃう自分を責めなくていいよ。傷ついたんだもん。",
+"理由がわからないことを、ひとりで解き明かさなくてもいい。",
+"相手の本音は、相手が話してくれない限りわからない。",
+"挨拶をした。それだけで、あなたは自分の礼儀を果たしているよ。",
+"みんなに好かれるお母さんじゃなくていい。",
+"無理に仲直りしなくても、礼儀ある距離感で十分なこともある。",
+"子ども同士の関係と、親同士の関係は、必ずしも同じじゃないよ。",
+"相手の態度は相手のもの。これからどうするかは、あなたが決めていい。",
+"忘れられない日があっても大丈夫。回復に期限はないよ。",
+"考えすぎていると気づいたら、いったん自分の時間に戻ってこよう。",
+"好かれようとして無理をするより、自分をすり減らさないことも大切。",
+"返事がなかった。それが事実。嫌われているかどうかは、まだわからない。",
+"すべての人と仲良くすることは、目標にしなくていい。",
+"相手の機嫌を直すことまで、あなたの仕事にしなくていい。",
+"今日は距離を置く。それも、自分を守る立派な選択だよ。",
+"心がざわざわするのは、それだけ大切にしたかったからかもしれないね。",
+"考えてしまう自分に、またダメ出ししなくていいよ。",
+"相手の気持ちを想像することと、事実を知っていることは別もの。",
+"気まずさを全部なくそうとしなくていい。少し気まずいままでも暮らせるよ。",
+"あなたは誰かのグループに入れてもらえなくても、価値が減るわけじゃない。",
+"今日すぐに答えを出さなくていい。保留にするのも選択肢。",
+"心の中で何度も再生される出来事。今は、少し休ませてあげよう。",
+"相手の反応をコントロールすることはできない。でも自分の対応は選べる。",
+"距離を置くのは、意地悪じゃなくて心のための調整かもしれない。",
+"全員にわかってもらえなくても、自分の感じた痛みを否定しなくていい。",
+"「私が悪かったのかな」と思ったら、確認できる事実に戻ってみよう。",
+"何があったかと、そこから何を想像したか。分けてみるだけでも十分。",
+"誰かに冷たくされたからといって、あなたまで自分に冷たくしなくていい。",
+"今日はこれ以上考えない、と決めてもいい。答えは明日でもいい。",
+"みんなに好かれることより、自分が安心して過ごせることを大切に。",
+"相手の態度に理由があったとしても、あなたが全部背負う必要はない。",
+"うまく割り切れない日もある。そんな日も含めて、回復の途中だよ。",
+"笑顔でやり過ごせなかった日も、あなたは十分がんばっている。",
+"その場でうまく対応できなくても、あとから自分を責め続けなくていい。",
+"人間関係を修復する責任を、ひとりで全部引き受けなくていい。",
+"必要なやりとりだけ、丁寧に。それで十分な関係もある。",
+"「嫌われたかも」は気持ちや予想であって、確定した事実とは限らない。",
+"あなたの一日は、その人の態度だけでできているわけじゃない。",
+"気になることがあっても、今日は好きな飲み物を飲んでひと息つこう。",
+"無理にポジティブにならなくていい。しんどいと認めるところからでいい。",
+"心を守るために選んだ距離を、何度も言い訳しなくていいよ。",
+"仲良くできない相手がいても、あなたが悪い人になるわけじゃない。",
+"相手がどう思っているかより、今の自分が何に困っているかを見てみよう。",
+"誰かの輪の外にいるように感じても、あなたの居場所はそこだけじゃない。",
+"「どうして？」を考え続けても答えが出ないときは、考えるのを休んでいい。",
+"気持ちが落ち着いてから考え直しても遅くないよ。",
+"子どものためにできることと、親同士で親しくすることは分けて考えていい。",
+"挨拶や必要な連絡をしているなら、できていることにも目を向けてみて。",
+"相手にどう見られるかより、自分が納得できる振る舞いを選ぼう。",
+"心が疲れているときは、結論より休息が必要なこともある。",
+"気まずい相手がいても、あなたの毎日全部が気まずいわけじゃない。",
+"自分の気持ちをすぐ整理できなくても、焦らなくていい。",
+"相手の沈黙を、自分への判決にしなくていいよ。",
+"「嫌われないように」だけで行動しなくていい。",
+"自分を守るために、話す量や関わる時間を調整してもいい。",
+"相手の事情はわからない。わからないまま、距離を選んでもいい。",
+"つらかった出来事を小さく見せなくていい。傷ついたなら傷ついたんだよ。",
+"自分の気持ちを理解するのに、相手の説明が必要とは限らない。",
+"今日はひとつだけ、自分が安心できることをしてみよう。",
+"気持ちが戻ってしまっても、振り出しに戻ったわけじゃないよ。",
+"あなたが誠実に接することと、相手から好かれることは別の話。",
+"相手の態度を変えられなくても、自分の負担を減らす工夫はできる。",
+"無理に笑顔を作らなくても、落ち着いて挨拶できたら十分。",
+"何度も思い出すのは、まだ心が整理している途中なのかもしれない。",
+"すぐに許せなくてもいい。許すことを急がなくていい。",
+"関係を元通りにすることだけが、解決とは限らないよ。",
+"「私が何かした？」と考えたら、わかっていることと想像を分けよう。",
+"自分の時間を取り戻すのは、一気じゃなくて少しずつでいい。",
+"相手の言葉や態度を、あなた自身の価値の採点にしなくていい。",
+"今日は必要以上に近づかない。それだけでもできることのひとつ。",
+"人付き合いに疲れたら、ひとりでほっとする時間を作っていい。",
+"わからないことを、悪いほうに決めつけなくてもいいし、無理に良く考えなくてもいい。",
+"あなたは誰かの期待に全部応えなくてもいい。",
+"自分の心が落ち着く距離感を探していいんだよ。",
+"傷ついたあと、すぐ普段どおりになれなくても自然なこと。",
+"相手の反応を待ち続けるより、自分の今日を過ごしていい。",
+"思い出してつらくなったら、「今はもうあの場面じゃない」と自分に伝えてみよう。",
+"その人と親しくないことと、あなたに価値がないことは無関係。",
+"うまくいかない人間関係があっても、あなたの人生全体が失敗なわけじゃない。",
+"自分の感じたことを、すぐ「気にしすぎ」と片づけなくていい。",
+"必要な礼儀は大切に。必要以上の我慢は手放していい。",
+"今の自分にできることだけでいい。相手の分まで頑張らなくていい。",
+"今日は今日の分だけ。明日のことまで心配しなくていいよ。",
+"あなたは、誰かの輪に選ばれるためだけに生きているんじゃない。",
+"答えが出ないことを考えるより、目の前の小さな安心に戻ってみよう。",
+"気まずい空気をひとりで埋めようとしなくていい。",
+"自分を責めたくなったら、親しい人にかける言葉を自分にも向けてみて。",
+"いつも感じよくいられなくても、人としての価値は変わらない。",
+"関わり方を変えることは、負けでも逃げでもないよ。",
+"相手の気分が変わるのを待たなくても、自分の過ごし方は決められる。",
+"今日は自分の心に、少しやさしい余白をあげよう。",
+"人間関係の悩みがある自分も、ちゃんと毎日をがんばっている。",
+"すべてを解決してからでなくても、楽しいことをしていい。",
+"相手の本音を当てることより、自分の安心を守ることを優先していい。",
+"「気にしない」じゃなくて「気になっても、自分の時間に戻る」でいい。",
+"誰かに合わないと感じても、無理に自分を作り変えなくていい。",
+"今日のおまもりは、あなたが自分を責めすぎないためのひとこと。",
+"少しずつでいい。自分の心を、相手の手から自分の手に戻していこう。"
+];
 
-  function loadSaved() {
-    try { return JSON.parse(localStorage.getItem("kokoroOmamoriSaved") || "[]"); }
-    catch (_) { return []; }
-  }
-  function persistSaved() {
-    try { localStorage.setItem("kokoroOmamoriSaved", JSON.stringify(saved)); }
-    catch (_) { toast("保存できませんでした。ブラウザの設定を確認してね。"); }
-    renderSaved();
-  }
-  function toast(message) {
-    const el = $("toast");
-    el.textContent = message;
-    el.style.display = "block";
-    clearTimeout(toast.timer);
-    toast.timer = setTimeout(() => el.style.display = "none", 2300);
-  }
-  function switchTab(name) {
-    document.querySelectorAll(".tab-panel").forEach(el => el.classList.toggle("active", el.id === "tab-" + name));
-    document.querySelectorAll(".nav-button").forEach(el => el.classList.toggle("active", el.dataset.tab === name));
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    if (name === "memo") renderSaved();
-  }
-  document.querySelectorAll(".nav-button").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
+const $ = id => document.getElementById(id);
+const today = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+};
+const getStore = (key, fallback) => {
+  try {
+    const v = localStorage.getItem(key);
+    return v ? JSON.parse(v) : fallback;
+  } catch (_) { return fallback; }
+};
+const setStore = (key, value) => {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
+};
 
-  $("drawButton").addEventListener("click", () => {
-    let next = currentCharm;
-    if (charms.length > 1) while (next === currentCharm) next = charms[Math.floor(Math.random() * charms.length)];
-    currentCharm = next;
-    $("gachaMessage").textContent = currentCharm;
-  });
-  $("saveCharmButton").addEventListener("click", () => addSaved({ type: "お守りの言葉", text: currentCharm }));
+let deck = getStore('omamoriDeck', []);
+let deckPos = Number(getStore('omamoriDeckPos', 0));
+let lastCharm = getStore('omamoriLastCharm', null);
+let facts = [];
+let others = [];
+let selected = null;
 
-  // A deliberately lightweight heuristic classifier, not an AI or a definitive judgment.
-  const factSignals = /(した|してくれた|言われた|と言われた|届いた|来た|来なかった|返事がなかった|返事が来なかった|見た|聞いた|会った|会わなかった|起きた|あった|なかった|送った|送られた|断られた|誘われた|誘われなかった|連絡がない|連絡が来た|挨拶した|無視された|泣いた|怒鳴られた|約束した|遅刻した|欠席した|参加した|退会した|ブロックされた|既読になった|未読のまま|言った|書いてあった|投稿していた|その場にいた|帰った|来た。?$)/;
-  const subjectiveSignals = /(かな|かも|気がする|と思う|と思った|感じる|感じた|嫌われ|避けられ|怒ってる|怒っている|嫌なの|嫌だ|怖い|不安|悲しい|つらい|辛い|ムカつく|腹が立つ|きっと|絶対|たぶん|どうせ|わざと|本当は|に違いない|はず|だろう|かもしれない|心配|恥ずかしい|会いたくない|嫌われている|仲間外れ|私のせい|自分が悪い|最悪|しんどい|落ち込んだ|傷ついた)/;
-  function classifyLine(line) {
-    const s = line.trim();
-    if (!s) return "other";
-    const subjective = subjectiveSignals.test(s);
-    const factual = factSignals.test(s) || /(返事がなかった|挨拶した|LINEを送った|メッセージを送った|誘った|断られた|既読がついた|約束の時間を過ぎた)/.test(s);
-    if (subjective && !factual) return "other";
-    if (subjective && factual) return "mixed";
-    if (factual) return "fact";
-    // Statements framed as questions, predictions, or interpretations are treated as non-factual.
-    if (/[？?]|かな|かも|きっと|たぶん|だと思|はず/.test(s)) return "other";
-    return "other";
+function shuffleDeck() {
+  const arr = charms.map((_, i) => i);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
-  function splitText(text) {
-    return text.split(/\n+|(?<=[。！？!?])/).map(s => s.trim()).filter(Boolean);
+  if (lastCharm !== null && arr.length > 1 && arr[0] === lastCharm) {
+    const j = 1 + Math.floor(Math.random() * (arr.length - 1));
+    [arr[0], arr[j]] = [arr[j], arr[0]];
   }
-  function sortThoughts() {
-    const text = $("thoughtInput").value.trim();
-    if (!text) { toast("まずは、気になっていることを書いてみてね。"); $("thoughtInput").focus(); return; }
-    factItems = []; otherItems = []; selected = { fact: -1, other: -1 };
-    splitText(text).forEach(line => {
-      const result = classifyLine(line);
-      if (result === "fact") factItems.push(line);
-      else if (result === "mixed") {
-        // Preserve the user's original words, and invite them to choose the best category.
-        otherItems.push(line);
-      } else otherItems.push(line);
-    });
-    renderClassification();
-    $("results").classList.add("show");
-    $("results").scrollIntoView({ behavior: "smooth", block: "start" });
+  deck = arr;
+  deckPos = 0;
+  setStore('omamoriDeck', deck);
+  setStore('omamoriDeckPos', deckPos);
+}
+
+function toast(message) {
+  const el = $('toast');
+  el.textContent = message;
+  el.style.display = 'block';
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => el.style.display = 'none', 2400);
+}
+
+function updateDailyStatus() {
+  const saved = getStore('omamoriDaily', {});
+  const used = saved.date === today();
+  $('drawButton').disabled = used;
+  $('drawButton').style.opacity = used ? '.55' : '1';
+  $('dailyStatus').textContent = used
+    ? '今日のおまもりは受け取り済みだよ。また明日、会いにきてね 🌿'
+    : '今日のおまもりは、1日1回。ゆっくり受け取ってね。';
+  if (used && saved.phrase) $('gachaMessage').textContent = saved.phrase;
+}
+
+$('drawButton').addEventListener('click', () => {
+  const saved = getStore('omamoriDaily', {});
+  if (saved.date === today()) {
+    toast('今日のおまもりは、もう受け取っているよ 🌿');
+    updateDailyStatus();
+    return;
   }
-  function renderList(list, kind, targetId, emptyId) {
-    const ul = $(targetId); ul.innerHTML = "";
-    list.forEach((text, index) => {
-      const li = document.createElement("li");
-      const label = document.createElement("label");
-      label.style.cssText = "display:flex;gap:8px;align-items:flex-start;font-weight:400;margin:0;cursor:pointer";
-      const radio = document.createElement("input");
-      radio.type = "radio"; radio.name = "select-" + kind; radio.checked = selected[kind] === index;
-      radio.addEventListener("change", () => { selected[kind] = index; });
-      const span = document.createElement("span"); span.textContent = text;
-      label.append(radio, span); li.appendChild(label); ul.appendChild(li);
-    });
-    $(emptyId).hidden = list.length > 0;
+  if (!Array.isArray(deck) || deck.length !== charms.length || deckPos >= deck.length) {
+    shuffleDeck();
   }
-  function renderClassification() {
-    renderList(factItems, "fact", "factList", "factEmpty");
-    renderList(otherItems, "other", "otherList", "otherEmpty");
-    const all = factItems.concat(otherItems).join(" ");
-    let advice = "今すぐ相手の気持ちや理由を決めなくても大丈夫。分からないことは、分からないまま置いておいていいよ。";
-    let actions = [
-      "次に会ったら、無理のない範囲で挨拶だけする。",
-      "相手の反応を追いかけるのを少し休んで、お茶や深呼吸でひと息つく。",
-      "今日、自分がほっとできることをひとつ選ぶ。"
-    ];
-    if (/(挨拶|返事|無視|返ってこな|返信|既読|未読)/.test(all)) {
-      advice = "返事がなかったことは事実でも、その理由まではまだ分からないよ。挨拶できたなら、あなたができることはできている。";
-      actions = ["次に会ったときは、無理のない範囲で挨拶だけでOK。", "返事をもらうために、何度も機嫌を取らなくて大丈夫。", "相手の反応から少し離れて、自分の予定に意識を戻してみる。"];
-    } else if (/(嫌われ|仲間外れ|避けられ|悪口|陰口)/.test(all)) {
-      advice = "そう感じると不安になるよね。ただ、相手の本心は想像だけでは確定できないこともある。自分を責める結論を急がなくて大丈夫。";
-      actions = ["確認できている出来事と、想像していることをもう一度分けてみる。", "安心して話せる人や場所に気持ちを向ける。", "つらい相手とは、必要なやり取りだけにして距離を調整してもいい。"];
-    } else if (/(会いたくない|疲れ|しんど|つら|悲し|不安|怖い|傷つ)/.test(all)) {
-      advice = "それだけ心が疲れているのかもしれないね。無理に前向きにならなくていいし、すぐに気持ちを切り替えられなくても大丈夫。";
-      actions = ["今日は大きな決断をしないで、ひとまず休む。", "会話や集まりを、無理のない範囲で短めにしてもいい。", "好きな食べ物・お茶・趣味など、自分のための時間を少し作る。"];
+  let index = deck[deckPos];
+  if (index === lastCharm && deck.length > 1) {
+    const swap = deck.findIndex((v, i) => i > deckPos && v !== lastCharm);
+    if (swap >= 0) {
+      [deck[deckPos], deck[swap]] = [deck[swap], deck[deckPos]];
+      index = deck[deckPos];
+    } else {
+      shuffleDeck();
+      index = deck[deckPos];
     }
-    $("adviceText").textContent = advice;
-    $("actionList").innerHTML = "";
-    actions.forEach(action => {
-      const row = document.createElement("div"); row.className = "action-item";
-      const tick = document.createElement("span"); tick.textContent = "✓";
-      const txt = document.createElement("span"); txt.textContent = action;
-      row.append(tick, txt); $("actionList").appendChild(row);
-    });
   }
-  $("sortButton").addEventListener("click", sortThoughts);
-  $("clearButton").addEventListener("click", () => {
-    $("thoughtInput").value = ""; $("results").classList.remove("show");
-    factItems = []; otherItems = []; selected = { fact: -1, other: -1 };
-    $("thoughtInput").focus();
-  });
-  $("moveFactButton").addEventListener("click", () => moveSelected("fact"));
-  $("moveOtherButton").addEventListener("click", () => moveSelected("other"));
-  function moveSelected(from) {
-    const index = selected[from];
-    const list = from === "fact" ? factItems : otherItems;
-    if (index < 0 || index >= list.length) { toast("移動したい文を選んでね。"); return; }
-    const [item] = list.splice(index, 1);
-    if (from === "fact") otherItems.push(item); else factItems.push(item);
-    selected = { fact: -1, other: -1 };
-    renderClassification();
-  }
-  $("saveWorkButton").addEventListener("click", () => {
-    if (!$("results").classList.contains("show")) return;
-    const text = "書いたこと：\n" + $("thoughtInput").value.trim() +
-      "\n\n【事実】\n" + (factItems.join("\n") || "（なし）") +
-      "\n\n【それ以外】\n" + (otherItems.join("\n") || "（なし）") +
-      "\n\n【ひとことアドバイス】\n" + $("adviceText").textContent +
-      "\n\n【いまできること】\n" + [...$("actionList").querySelectorAll(".action-item span:last-child")].map(el => "・" + el.textContent).join("\n");
-    addSaved({ type: "実践ワーク", text });
-  });
+  const phrase = charms[index];
+  $('gachaMessage').textContent = phrase;
+  lastCharm = index;
+  deckPos++;
+  setStore('omamoriDeck', deck);
+  setStore('omamoriDeckPos', deckPos);
+  setStore('omamoriLastCharm', lastCharm);
+  setStore('omamoriDaily', {date: today(), phrase});
+  updateDailyStatus();
+  toast('今日のおまもりを受け取ったよ 🌱');
+});
 
-  function addSaved(item) {
-    saved.unshift({ ...item, date: new Date().toLocaleString("ja-JP", { year: "numeric", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) });
-    saved = saved.slice(0, 50);
-    persistSaved();
-    toast("お守りメモに保存したよ ♡");
-  }
-  $("savePersonalMemo").addEventListener("click", () => {
-    const text = $("personalMemo").value.trim();
-    if (!text) { toast("メモを書いてから保存してね。"); return; }
-    addSaved({ type: "自分のお守りメモ", text });
-    $("personalMemo").value = "";
+$('saveCharmButton').addEventListener('click', () => {
+  saveMemo($('gachaMessage').textContent, '今日のおまもり');
+});
+
+function splitThoughts(text) {
+  const lines = text.split(/\n+|(?<=[。！？!?])/).map(s => s.trim()).filter(Boolean);
+  const f = [], o = [];
+  const guess = /(かも|かな|気がする|と思う|に違いない|はず|きっと|絶対|嫌われ|避けられ|わざと|どうせ|みんな|いつも|もう嫌|つらい|悲しい|怖い|不安|腹が立つ|むかつく|最悪|苦しい|恥ずかしい|私が悪い|嫌だな|どうしよう|だと思|な気が)/;
+  const concrete = /(言われた|と言った|返事がなかった|返事をしなかった|挨拶した|挨拶をした|会った|会わなかった|誘われなかった|誘われた|連絡が来た|連絡がなかった|LINEが来た|LINEがなかった|既読になった|未読だった|断られた|断った|目が合った|話しかけた|話しかけられた|その場にいた|欠席した|参加した|起きた|した。|あった。|なかった。)/;
+  lines.forEach(line => {
+    if (guess.test(line) || !concrete.test(line)) o.push(line);
+    else f.push(line);
   });
-  function renderSaved() {
-    const container = $("savedList"); container.innerHTML = "";
-    if (!saved.length) {
-      const empty = document.createElement("div"); empty.className = "empty-state";
-      empty.innerHTML = "まだ保存したものはありません。<br>心に残った言葉を保存してみてね。";
-      container.appendChild(empty); return;
-    }
-    saved.forEach((item, index) => {
-      const card = document.createElement("div"); card.className = "memo-item";
-      const tag = document.createElement("small"); tag.textContent = item.type + " ・ " + item.date;
-      const p = document.createElement("p"); p.textContent = item.text;
-      const del = document.createElement("button"); del.className = "soft-button"; del.textContent = "このメモを削除";
-      del.addEventListener("click", () => {
-        saved.splice(index, 1); persistSaved(); toast("メモを削除したよ。");
-      });
-      card.append(tag, p, del); container.appendChild(card);
+  return {f, o};
+}
+
+function renderLines(id, emptyId, lines, group) {
+  const ul = $(id);
+  ul.replaceChildren();
+  $(emptyId).hidden = lines.length > 0;
+  lines.forEach((line, i) => {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'soft-button';
+    b.style.cssText = 'display:block;width:100%;text-align:left;white-space:normal;margin:5px 0;';
+    b.textContent = (selected && selected.group === group && selected.index === i ? '✓ ' : '○ ') + line;
+    b.addEventListener('click', () => {
+      selected = {group, index: i};
+      renderResults();
     });
+    li.appendChild(b);
+    ul.appendChild(li);
+  });
+}
+
+function renderResults() {
+  renderLines('factList', 'factEmpty', facts, 'fact');
+  renderLines('otherList', 'otherEmpty', others, 'other');
+}
+
+function adviceFor(text) {
+  if (/(子ども|園|学校|保育園|幼稚園)/.test(text)) {
+    return {
+      advice: '子どものことと、親同士の親しさは分けて考えていいよ。必要な連絡や挨拶を大切にしながら、無理に仲良くしなくても大丈夫。',
+      actions: ['子どもに必要なやりとりと、自分が無理している部分を分けてみる', '必要な連絡だけ、短く丁寧にする', 'ひとりで抱えず、安心して話せる人に相談する']
+    };
   }
-  renderSaved();
-})();
+  if (/(嫌われ|無視|返事|挨拶|避けられ|仲間外れ|誘われ)/.test(text)) {
+    return {
+      advice: '相手の本音は、本人が話してくれない限り断定できないよ。起きたことは大切にしつつ、想像だけで自分を責めなくていい。',
+      actions: ['実際に見聞きしたことをひとつ書き出す', '「そうかもしれない」と「確実にそうだ」を分けてみる', '次に会ったときは、無理せず挨拶だけでもOKと決めておく']
+    };
+  }
+  return {
+    advice: 'すぐに気持ちを切り替えられなくても自然なことだよ。相手の気持ちを全部解き明かそうとしなくても、自分を守る選択はできる。',
+    actions: ['今わかっている事実をひとつ確認する', 'いま自分で決められることをひとつ選ぶ', '温かい飲み物や深呼吸など、少し落ち着く時間をつくる']
+  };
+}
+
+$('sortButton').addEventListener('click', () => {
+  const text = $('thoughtInput').value.trim();
+  if (!text) {
+    toast('まずは今の気持ちを書いてみてね 🌿');
+    $('thoughtInput').focus();
+    return;
+  }
+  const result = splitThoughts(text);
+  facts = result.f;
+  others = result.o;
+  selected = null;
+  renderResults();
+  const a = adviceFor(text);
+  $('adviceText').textContent = a.advice;
+  const list = $('actionList');
+  list.replaceChildren();
+  a.actions.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'action-item';
+    const mark = document.createElement('span');
+    mark.textContent = '✓';
+    const content = document.createElement('span');
+    content.textContent = item;
+    row.append(mark, content);
+    list.appendChild(row);
+  });
+  $('results').classList.add('show');
+  $('results').scrollIntoView({behavior:'smooth', block:'nearest'});
+});
+
+$('moveFactButton').addEventListener('click', () => {
+  if (!selected || selected.group !== 'fact') {
+    toast('移動したい文を先に選んでね');
+    return;
+  }
+  others.push(facts.splice(selected.index, 1)[0]);
+  selected = null;
+  renderResults();
+});
+$('moveOtherButton').addEventListener('click', () => {
+  if (!selected || selected.group !== 'other') {
+    toast('移動したい文を先に選んでね');
+    return;
+  }
+  facts.push(others.splice(selected.index, 1)[0]);
+  selected = null;
+  renderResults();
+});
+$('clearButton').addEventListener('click', () => {
+  $('thoughtInput').value = '';
+  $('results').classList.remove('show');
+  facts = [];
+  others = [];
+  selected = null;
+  $('thoughtInput').focus();
+});
+
+function saveMemo(text, title) {
+  if (!text || !text.trim()) {
+    toast('保存する言葉がないみたい');
+    return;
+  }
+  const memos = getStore('omamoriMemos', []);
+  memos.unshift({text: text.trim(), title, date: today(), id: Date.now()});
+  setStore('omamoriMemos', memos);
+  renderMemos();
+  toast('お守りメモに保存したよ ♡');
+}
+
+$('saveWorkButton').addEventListener('click', () => {
+  const text = $('thoughtInput').value.trim();
+  if (!text) return toast('先にワークを書いてね');
+  const content = '【書いたこと】\n' + text +
+    '\n\n【事実】\n' + (facts.join('\n') || 'なし') +
+    '\n\n【それ以外】\n' + (others.join('\n') || 'なし') +
+    '\n\n【ひとことアドバイス】\n' + $('adviceText').textContent +
+    '\n\n【いまできること】\n' +
+    Array.from($('actionList').querySelectorAll('.action-item span:last-child')).map(el => '・' + el.textContent).join('\n');
+  saveMemo(content, '実践ワーク');
+});
+
+$('saveNoteButton').addEventListener('click', () => {
+  saveMemo($('memoInput').value, '自分のお守り言葉');
+  $('memoInput').value = '';
+});
+
+function renderMemos() {
+  const list = $('memoList');
+  list.replaceChildren();
+  const memos = getStore('omamoriMemos', []);
+  if (!memos.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.textContent = 'ここには、これから大切な言葉を残していけるよ 🌿';
+    list.appendChild(empty);
+    return;
+  }
+  memos.forEach(memo => {
+    const box = document.createElement('div');
+    box.className = 'memo-item';
+    const p = document.createElement('p');
+    p.textContent = memo.text;
+    const small = document.createElement('small');
+    small.textContent = (memo.title || 'お守りメモ') + ' ・ ' + (memo.date || '');
+    const del = document.createElement('button');
+    del.className = 'soft-button';
+    del.textContent = 'このメモを削除';
+    del.addEventListener('click', () => {
+      setStore('omamoriMemos', getStore('omamoriMemos', []).filter(m => m.id !== memo.id));
+      renderMemos();
+      toast('メモを削除したよ');
+    });
+    box.append(p, small, document.createElement('br'), del);
+    list.appendChild(box);
+  });
+}
+
+document.querySelectorAll('.nav-button').forEach(button => {
+  button.addEventListener('click', () => {
+    document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    button.classList.add('active');
+    $('tab-' + button.dataset.tab).classList.add('active');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+});
+
+updateDailyStatus();
+renderMemos();
+if (!getStore('omamoriDaily', {}).date) {
+  $('gachaMessage').textContent = '今日はどんな気持ちかな。おまもりを受け取ってみてね。';
+}
 </script>
 </body>
 </html>
-'''
-path = Path("/mnt/data/kokoro_omamori_detox.html")
-path.write_text(html, encoding="utf-8")
-print(f"作成しました: {path} ({path.stat().st_size:,} bytes)")
+
+        
