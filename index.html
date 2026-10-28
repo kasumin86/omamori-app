@@ -579,11 +579,28 @@ document.querySelectorAll('.nav-button').forEach(button => {
   });
 });
 
+
+function getGreetingByTime() {
+  const hour = new Date().getHours();
+
+  if (hour >= 5 && hour < 12) {
+    return '今日も自分のペースでいこうね😊';
+  } else if (hour >= 12 && hour < 17) {
+    return 'ちょっと、ひと休みしていかない🐰？';
+  } else if (hour >= 17 && hour < 22) {
+    return '今日も一日お疲れさま☕';
+  } else {
+    return 'おやすみ前に、ちょっとだけ🌸';
+  }
+}
+
 updateDailyStatus();
 renderMemos();
+
 if (!getStore('omamoriDaily', {}).date) {
-  $('gachaMessage').textContent = '今日はどんな気持ちかな。おまもりを受け取ってみてね。';
+  $('gachaMessage').textContent = getGreetingByTime();
 }
+
 </script>
 </body>
 </html>
