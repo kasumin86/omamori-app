@@ -102,6 +102,20 @@
   .nav-button.active { background: var(--sage-pale); color: var(--sage-dark); }
   .toast { position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%); background: #354b35; color: white; padding: 9px 16px; border-radius: 999px; font-size: 13px; display: none; z-index: 8; max-width: 90%; text-align: center; }
   @media (min-width: 600px) { .app { padding-top: 35px; } .card { padding: 26px; } }
+.step-three {
+  background: #edf3e9;
+  border-color: #d5e2cf;
+}
+
+.step-three h3 {
+  color: var(--sage-dark);
+}
+
+.step-three textarea {
+  min-height: 85px;
+  margin-top: 6px;
+  background: #fffefa;
+}
 </style>
 </head>
 <body>
@@ -140,19 +154,19 @@
         <p class="field-help">きれいに書かなくてOK。起きたことも、想像も、気持ちも、そのままで大丈夫。</p>
         <textarea id="thoughtInput" placeholder="例：挨拶したのに返事がなかった。嫌われているのかな。明日会うのも嫌だな……"></textarea>
         <div class="work-actions">
-          <button class="primary" id="sortButton">事実とそれ以外に分ける</button>
+         <button class="primary" id="sortButton">事実と、まだ確かめられていないことに分ける</button>
           <button class="secondary" id="clearButton">書き直す</button>
         </div>
         <p class="fine-print">文章の特徴をもとにした簡易的な自動分類です。完璧ではないので、違うと感じたら下の分類を自分で直してね。</p>
         <div class="results" id="results" aria-live="polite">
           <div class="result-box fact-box">
-            <p class="result-heading">🌿 事実として書かれていること</p>
+            <p class="result-heading">🌿 実際に起きたこと（事実）</p>
             <ul id="factList"></ul>
             <p class="empty" id="factEmpty" hidden>事実として判断できる文は見つからなかったよ。</p>
-            <button class="soft-button" id="moveFactButton">選んだ文を「それ以外」へ</button>
+            <button class="soft-button" id="moveFactButton">選んだ文を「まだ確かめられていないこと」へ</button>
           </div>
           <div class="result-box other-box">
-            <p class="result-heading">☁️ それ以外（想像・気持ち・予想）</p>
+            <p class="result-heading">☁️ まだ確かめられていないこと</p>
             <ul id="otherList"></ul>
             <p class="empty" id="otherEmpty" hidden>こちらに分けられた文はないよ。</p>
             <button class="soft-button" id="moveOtherButton">選んだ文を「事実」へ</button>
@@ -165,9 +179,37 @@
             <h3>いまできること</h3>
             <div class="action-list" id="actionList"></div>
           </div>
-          <div class="actions">
-            <button class="primary" id="saveWorkButton">このワークをお守りメモに保存</button>
-          </div>
+          <div class="advice step-three">
+  <h3>🌱 STEP 3　自分を守るルールを決めよう</h3>
+  <p>
+    相手の気持ちを今すぐ確かめられなくても大丈夫。
+    不安になったとき、自分にできることを決めておこう。
+  </p>
+
+  <label for="worryInput" style="margin-top:16px;">
+    今、一番気になっていること
+  </label>
+  <textarea
+    id="worryInput"
+    placeholder="例：明日、会ったときに気まずくなりそう"
+  ></textarea>
+
+  <label for="ruleInput" style="margin-top:16px;">
+    そんなとき、自分にできそうなこと
+  </label>
+  <textarea
+    id="ruleInput"
+    placeholder="例：挨拶だけして、自分のやることに戻ろう"
+  ></textarea>
+
+  <p class="fine-print">
+    完璧にできなくても大丈夫。自分を守るための小さなルールで十分だよ🍀
+  </p>
+</div>
+
+<div class="actions">
+  <button class="primary" id="saveWorkButton">このワークをお守りメモに保存</button>
+</div>
         </div>
       </div>
       <div class="note">「それ以外」は、間違いという意味じゃないよ。不安も悲しみも大切な気持ち。ただ、事実と想像を分けると、少しだけ心に余白ができることがあります。</div>
@@ -679,6 +721,8 @@ $('moveOtherButton').addEventListener('click', () => {
 });
 $('clearButton').addEventListener('click', () => {
   $('thoughtInput').value = '';
+  $('worryInput').value = '';
+$('ruleInput').value = '';
   $('results').classList.remove('show');
   facts = [];
   others = [];
@@ -700,13 +744,31 @@ function saveMemo(text, title) {
 
 $('saveWorkButton').addEventListener('click', () => {
   const text = $('thoughtInput').value.trim();
-  if (!text) return toast('先にワークを書いてね');
-  const content = '【書いたこと】\n' + text +
-    '\n\n【事実】\n' + (facts.join('\n') || 'なし') +
-    '\n\n【それ以外】\n' + (others.join('\n') || 'なし') +
-    '\n\n【ひとことアドバイス】\n' + $('adviceText').textContent +
-    '\n\n【いまできること】\n' +
-    Array.from($('actionList').querySelectorAll('.action-item span:last-child')).map(el => '・' + el.textContent).join('\n');
+
+  if (!text) {
+    return toast('先にワークを書いてね');
+  }
+
+  const worry = $('worryInput').value.trim();
+  const rule = $('ruleInput').value.trim();
+
+  const content =
+    '【STEP 1：書き出したこと】\n' + text +
+    '\n\n【STEP 2：実際に起きたこと（事実）】\n' +
+    (facts.join('\n') || 'なし') +
+    '\n\n【STEP 2：まだ確かめられていないこと】\n' +
+    (others.join('\n') || 'なし') +
+    '\n\n【ひとことアドバイス】\n' +
+    $('adviceText').textContent +
+    '\n\n【いまできることのヒント】\n' +
+    Array.from(
+      $('actionList').querySelectorAll('.action-item span:last-child')
+    ).map(el => '・' + el.textContent).join('\n') +
+    '\n\n【STEP 3：今、一番気になっていること】\n' +
+    (worry || '未記入') +
+    '\n\n【STEP 3：自分にできそうなこと】\n' +
+    (rule || '未記入');
+
   saveMemo(content, '実践ワーク');
 });
 
