@@ -209,7 +209,7 @@
 </div>
 
 <div class="actions">
-  <button class="primary" id="saveWorkButton">このワークをお守りメモに保存</button>
+  <button class="primary" id="saveWorkButton">🌱 この対処法を保存</button>
 </div>
         </div>
       </div>
@@ -229,6 +229,15 @@
           <button class="primary" id="saveNoteButton">この言葉を保存する</button>
         </div>
         <div id="memoList"></div>
+        <hr style="border:0;border-top:1px solid var(--line);margin:28px 0;">
+
+<h3 style="color:var(--sage-dark);">🌱 わたしの対処法</h3>
+
+<p class="fine-print">
+  STEP3で決めた、自分を守るためのルールを見返せるよ🍀
+</p>
+
+<div id="savedRulesList"></div>
         <p class="fine-print">メモはこのブラウザ内に保存されます。別の端末とは共有されません。</p>
       </div>
     </section>
@@ -743,34 +752,47 @@ function saveMemo(text, title) {
   toast('お守りメモに保存したよ ♡');
 }
 
+let editingRuleId = null;
+
 $('saveWorkButton').addEventListener('click', () => {
-  const text = $('thoughtInput').value.trim();
-
-  if (!text) {
-    return toast('先にワークを書いてね');
-  }
-
   const worry = $('worryInput').value.trim();
   const rule = $('ruleInput').value.trim();
 
-  const content =
-    '【STEP 1：書き出したこと】\n' + text +
-    '\n\n【STEP 2：実際に起きたこと（事実）】\n' +
-    (facts.join('\n') || 'なし') +
-    '\n\n【STEP 2：まだ確かめられていないこと】\n' +
-    (others.join('\n') || 'なし') +
-    '\n\n【ひとことアドバイス】\n' +
-    $('adviceText').textContent +
-    '\n\n【いまできることのヒント】\n' +
-    Array.from(
-      $('actionList').querySelectorAll('.action-item span:last-child')
-    ).map(el => '・' + el.textContent).join('\n') +
-    '\n\n【STEP 3：今、一番気になっていること】\n' +
-    (worry || '未記入') +
-    '\n\n【STEP 3：自分にできそうなこと】\n' +
-    (rule || '未記入');
+  if (!worry || !rule) {
+    return toast('2つとも書いてみてね🍀');
+  }
 
-  saveMemo(content, '実践ワーク');
+  const rules = getStore('omamoriStep3Rules', []);
+
+  if (editingRuleId !== null) {
+    const index = rules.findIndex(item => item.id === editingRuleId);
+
+    if (index !== -1) {
+      rules[index] = {
+        ...rules[index],
+        worry,
+        rule,
+        date: today()
+      };
+    }
+  } else {
+    rules.unshift({
+      id: Date.now(),
+      worry,
+      rule,
+      date: today()
+    });
+  }
+
+  setStore('omamoriStep3Rules', rules);
+  renderSavedRules();
+
+  $('worryInput').value = '';
+  $('ruleInput').value = '';
+  editingRuleId = null;
+  $('saveWorkButton').textContent = '🌱 この対処法を保存';
+
+  toast('対処法を保存したよ🌱');
 });
 
 $('saveNoteButton').addEventListener('click', () => {
@@ -809,6 +831,89 @@ function renderMemos() {
   });
 }
 
+  function renderSavedRules() {
+  const list = $('savedRulesList');
+  if (!list) return;
+
+  const rules = getStore('omamoriStep3Rules', []);
+
+  if (rules.length === 0) {
+    list.innerHTML = '<p class="fine-print">保存した対処法はまだないよ。STEP3から保存してね🍀</p>';
+    return;
+  }
+
+  list.innerHTML = rules.map(item => `
+    <div class="memo-item" style="margin-bottom:16px;">
+      <p class="fine-print">${escapeHtml(item.date || '')}</p>
+
+      <p><strong>💭 気になっていること</strong></p>
+      <p style="white-space:pre-wrap;">${escapeHtml(item.worry)}</p>
+
+      <p><strong>🌱 自分にできそうなこと</strong></p>
+      <p style="white-space:pre-wrap;">${escapeHtml(item.rule)}</p>
+
+      <div class="actions">
+        <button type="button" class="secondary" data-edit-rule="${item.id}">
+          編集
+        </button>
+        <button type="button" class="secondary" data-delete-rule="${item.id}">
+          削除
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('[data-edit-rule]').forEach(button => {
+    button.addEventListener('click', () => {
+      const id = Number(button.dataset.editRule);
+      const item = getStore('omamoriStep3Rules', [])
+        .find(rule => rule.id === id);
+
+      if (!item) return;
+
+      editingRuleId = item.id;
+      $('worryInput').value = item.worry;
+      $('ruleInput').value = item.rule;
+      $('saveWorkButton').textContent = '変更を保存';
+
+      $('results').classList.add('show');
+
+      const workTab = document.querySelector('.nav-button[data-tab="work"]');
+      if (workTab) workTab.click();
+
+      $('worryInput').scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+
+      toast('内容を直して保存できるよ✏️');
+    });
+  });
+
+  list.querySelectorAll('[data-delete-rule]').forEach(button => {
+    button.addEventListener('click', () => {
+      const id = Number(button.dataset.deleteRule);
+
+      if (!confirm('この対処法を削除してもいい？')) return;
+
+      const remaining = getStore('omamoriStep3Rules', [])
+        .filter(item => item.id !== id);
+
+      setStore('omamoriStep3Rules', remaining);
+
+      if (editingRuleId === id) {
+        editingRuleId = null;
+        $('worryInput').value = '';
+        $('ruleInput').value = '';
+        $('saveWorkButton').textContent = '🌱 この対処法を保存';
+      }
+
+      renderSavedRules();
+      toast('対処法を削除したよ');
+    });
+  });
+}
+
 document.querySelectorAll('.nav-button').forEach(button => {
   button.addEventListener('click', () => {
     document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
@@ -836,6 +941,7 @@ function getGreetingByTime() {
 
 updateDailyStatus();
 renderMemos();
+  renderSavedRules();
 
 if (getStore('omamoriDaily', {}).date !== today()) {
   $('gachaMessage').textContent = getGreetingByTime();
