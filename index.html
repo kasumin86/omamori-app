@@ -830,19 +830,21 @@ function renderMemos() {
     list.appendChild(box);
   });
 }
-  function renderSavedRules() {
+function renderSavedRules() {
   const list = $('savedRulesList');
   if (!list) return;
+
+  list.replaceChildren();
 
   const rules = getStore('omamoriStep3Rules', []);
 
   if (rules.length === 0) {
-    list.innerHTML =
-      '<p class="fine-print">保存した対処法はまだないよ。STEP3から保存してね🍀</p>';
+    const empty = document.createElement('p');
+    empty.className = 'fine-print';
+    empty.textContent = '保存した対処法はまだないよ。STEP3から保存してね🍀';
+    list.appendChild(empty);
     return;
   }
-
-  list.replaceChildren();
 
   rules.forEach(item => {
     const box = document.createElement('div');
@@ -856,28 +858,30 @@ function renderMemos() {
     worryTitle.textContent = '💭 気になっていること';
 
     const worry = document.createElement('p');
-    worry.style.whiteSpace = 'pre-wrap';
     worry.textContent = item.worry || '';
 
     const ruleTitle = document.createElement('strong');
     ruleTitle.textContent = '🌱 自分にできそうなこと';
 
     const rule = document.createElement('p');
-    rule.style.whiteSpace = 'pre-wrap';
     rule.textContent = item.rule || '';
 
     const edit = document.createElement('button');
     edit.className = 'soft-button';
     edit.textContent = '編集';
+
     edit.addEventListener('click', () => {
       editingRuleId = item.id;
+
       $('worryInput').value = item.worry || '';
       $('ruleInput').value = item.rule || '';
       $('saveWorkButton').textContent = '変更を保存';
 
       $('results').classList.add('show');
 
-      const tab = document.querySelector('.nav-button[data-tab="work"]');
+      const tab = document.querySelector(
+        '.nav-button[data-tab="work"]'
+      );
       if (tab) tab.click();
 
       $('worryInput').scrollIntoView({
@@ -922,89 +926,6 @@ function renderMemos() {
     );
 
     list.appendChild(box);
-  });
-}
-
-  function renderSavedRules() {
-  const list = $('savedRulesList');
-  if (!list) return;
-
-  const rules = getStore('omamoriStep3Rules', []);
-
-  if (rules.length === 0) {
-    list.innerHTML = '<p class="fine-print">保存した対処法はまだないよ。STEP3から保存してね🍀</p>';
-    return;
-  }
-
-  list.innerHTML = rules.map(item => `
-    <div class="memo-item" style="margin-bottom:16px;">
-      <p class="fine-print">${escapeHtml(item.date || '')}</p>
-
-      <p><strong>💭 気になっていること</strong></p>
-      <p style="white-space:pre-wrap;">${escapeHtml(item.worry)}</p>
-
-      <p><strong>🌱 自分にできそうなこと</strong></p>
-      <p style="white-space:pre-wrap;">${escapeHtml(item.rule)}</p>
-
-      <div class="actions">
-        <button type="button" class="secondary" data-edit-rule="${item.id}">
-          編集
-        </button>
-        <button type="button" class="secondary" data-delete-rule="${item.id}">
-          削除
-        </button>
-      </div>
-    </div>
-  `).join('');
-
-  list.querySelectorAll('[data-edit-rule]').forEach(button => {
-    button.addEventListener('click', () => {
-      const id = Number(button.dataset.editRule);
-      const item = getStore('omamoriStep3Rules', [])
-        .find(rule => rule.id === id);
-
-      if (!item) return;
-
-      editingRuleId = item.id;
-      $('worryInput').value = item.worry;
-      $('ruleInput').value = item.rule;
-      $('saveWorkButton').textContent = '変更を保存';
-
-      $('results').classList.add('show');
-
-      const workTab = document.querySelector('.nav-button[data-tab="work"]');
-      if (workTab) workTab.click();
-
-      $('worryInput').scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
-
-      toast('内容を直して保存できるよ✏️');
-    });
-  });
-
-  list.querySelectorAll('[data-delete-rule]').forEach(button => {
-    button.addEventListener('click', () => {
-      const id = Number(button.dataset.deleteRule);
-
-      if (!confirm('この対処法を削除してもいい？')) return;
-
-      const remaining = getStore('omamoriStep3Rules', [])
-        .filter(item => item.id !== id);
-
-      setStore('omamoriStep3Rules', remaining);
-
-      if (editingRuleId === id) {
-        editingRuleId = null;
-        $('worryInput').value = '';
-        $('ruleInput').value = '';
-        $('saveWorkButton').textContent = '🌱 この対処法を保存';
-      }
-
-      renderSavedRules();
-      toast('対処法を削除したよ');
-    });
   });
 }
 
